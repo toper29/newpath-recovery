@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
     LayoutDashboard,
     Users,
@@ -57,6 +57,7 @@ export const adminMenus = [
 
 export default function AdminSidebar({ user }: { user?: any }) {
     const pathname = usePathname();
+    const router = useRouter();
 
     const menus = user?.role === "ADMIN" ? adminMenus : superAdminMenus;
     
@@ -65,6 +66,16 @@ export default function AdminSidebar({ user }: { user?: any }) {
     const displayName = user?.username || displayRole;
     const initial = displayName.substring(0, 2).toUpperCase();
     const displayEmail = user?.email || "admin@newpath.com";
+
+    const handleLogout = async () => {
+        try {
+            await fetch("/api/auth/logout", { method: "POST" });
+            router.push("/");
+            router.refresh(); // forces Next.js to re-evaluate auth middleware
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     return (
         <div className="w-64 bg-[#060A14] border-r border-primary/20 flex flex-col h-screen text-foreground relative z-20 hidden md:flex">
@@ -110,9 +121,9 @@ export default function AdminSidebar({ user }: { user?: any }) {
                             <p className="text-[10px] text-foreground/50 truncate max-w-[120px]">{displayEmail}</p>
                         </div>
                     </div>
-                    <Link href="/" className="text-foreground/50 hover:text-red-400 transition-colors flex-shrink-0">
+                    <button onClick={handleLogout} className="text-foreground/50 hover:text-red-400 transition-colors flex-shrink-0 cursor-pointer p-2">
                         <LogOut size={18} />
-                    </Link>
+                    </button>
                 </div>
             </div>
         </div>
