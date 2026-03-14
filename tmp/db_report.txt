@@ -1,0 +1,30 @@
+--- DATABASE COUNTS ---
+Users: 3
+Articles:
+ChallengeProgress: 2
+FeatureUsage: 163
+GameSession: 818
+-----------------------
+Users: [
+  {
+    "id": "4f1e61ba-5d6f-45a1-a8ad-09c598497b47",
+    "username": "admin_super",
+    "xp": 0,
+    "level": 1,
+    "role": "SUPERADMIN"
+  },
+  {
+    "id": "707732dd-7b88-43ff-a8da-d37af826cf13",
+    "username": "judi_slayer",
+    "xp": 4281,
+    "level": 9,
+    "role": "USER"
+  },
+  {
+    "id": "013aafe0-f54a-4b26-be31-2ed53500713b",
+    "username": "hopeful",
+    "xp": 0,
+    "level": 1,
+    "role": "USER"
+  }
+]

@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./client-v100"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                  String              @id @default(uuid())
+  username            String              @unique
+  email               String              @unique
+  password            String
+  phone               String?
+  role                String              @default("USER")
+  status              String              @default("PENDING")
+  xp                  Int                 @default(0)
+  level               Int                 @default(1)
+  title               String?
+  lastActivity        String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  failedLoginAttempts Int                 @default(0)
+  lockedUntil         DateTime?
+  streak              Int                 @default(0)
+  longestStreak       Int                 @default(0)
+  addictionTests      AddictionTest[]
+  completions         ArticleCompletion[]
+  challengeProgress   ChallengeProgress[]
+  dailyCheckIns       DailyCheckIn[]
+  featureUsages       FeatureUsage[]
+  gameSessions        GameSession[]
+  achievements        UserAchievement[]
+  gamblingReports     GamblingReport[]
+}
+
+model Achievement {
+  id           String            @id @default(uuid())
+  key          String            @unique // e.g., 'first_step', 'logic_ninja'
+  title        String
+  description  String
+  mission      String            // Human readable mission description
+  category     String            // 'CONSISTENCY', 'COGNITIVE', 'EDUCATION', 'STREAK'
+  targetValue  Int               // e.g., 10 (for 10 games)
+  iconName     String            // Lucide icon name
+  rewardTitle  String?           // Optional title rewarded upon completion
+  createdAt    DateTime          @default(now())
+  userRel      UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  userId        String
+  achievementId String
+  progress      Int         @default(0)
+  isUnlocked    Boolean     @default(false)
+  unlockedAt    DateTime?
+  updatedAt     DateTime    @updatedAt
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+}
+
+model AddictionTest {
+  id        String   @id @default(uuid())
+  userId    String
+  score     Int
+  category  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ChallengeProgress {
+  id           String   @id @default(uuid())
+  userId       String
+  dayCompleted Int
+  status       String
+  completedAt  DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FeatureUsage {
+  id          String   @id @default(uuid())
+  userId      String
+  featureName String
+  usedAt      DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GameSession {
+  id       String   @id @default(uuid())
+  userId   String
+  game     String
+  xpEarned Int
+  level    Int?
+  score    Int?
+  playedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SecurityLog {
+  id        String   @id @default(uuid())
+  type      String
+  details   String
+  ipAddress String
+  timestamp DateTime @default(now())
+}
+
+model DailyCheckIn {
+  id                 String   @id @default(uuid())
+  userId             String
+  checkedAt          DateTime @default(now())
+  didGamble          Boolean
+  feltLikeDepositing Boolean
+  openedGamblingSite Boolean
+  note               String?
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Article {
+  id          String              @id @default(uuid())
+  title       String
+  content     String
+  category    String              @default("Uncategorized")
+  thumbnail   String?
+  createdBy   String
+  createdAt   DateTime            @default(now())
+  completions ArticleCompletion[]
+}
+
+model ArticleCompletion {
+  id        String   @id @default(uuid())
+  userId    String
+  articleId String
+  createdAt DateTime @default(now())
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+}
+
+model SystemSetting {
+  key   String @id
+  value String
+}
+
+model GameThreshold {
+  id        String   @id @default(uuid())
+  gameName  String   @unique
+  minScore  Int      @default(0)
+  xpReward  Int      @default(10)
+  timeLimit Int      @default(60)
+  updatedAt DateTime @updatedAt
+}
+
+model LandingPageContent {
+  id          String   @id @default("singleton")
+  heroTitle   String
+  heroSub     String
+  stats_users String
+  stats_rate  String
+  updatedAt   DateTime @updatedAt
+}
+model GamblingReport {
+  id              String   @id @default(uuid())
+  userId          String?  // Optional, if logged in
+  siteName        String
+  siteLink        String
+  hasRegistered   Boolean  @default(false)
+  remarks         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
