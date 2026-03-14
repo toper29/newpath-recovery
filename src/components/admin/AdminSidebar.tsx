@@ -55,10 +55,16 @@ export const adminMenus = [
     { name: "Stories / Testimoni", href: "/admin/stories", icon: FileText },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ user }: { user?: any }) {
     const pathname = usePathname();
 
-    const menus = superAdminMenus;
+    const menus = user?.role === "ADMIN" ? adminMenus : superAdminMenus;
+    
+    // Derived display data
+    const displayRole = user?.role === "ADMIN" ? "Admin" : "Super Admin";
+    const displayName = user?.username || displayRole;
+    const initial = displayName.substring(0, 2).toUpperCase();
+    const displayEmail = user?.email || "admin@newpath.com";
 
     return (
         <div className="w-64 bg-[#060A14] border-r border-primary/20 flex flex-col h-screen text-foreground relative z-20 hidden md:flex">
@@ -97,14 +103,14 @@ export default function AdminSidebar() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center font-bold text-sm">
-                            SA
+                            {initial}
                         </div>
-                        <div>
-                            <p className="text-sm font-bold">Super Admin</p>
-                            <p className="text-[10px] text-foreground/50">admin@newpath.com</p>
+                        <div className="overflow-hidden">
+                            <p className="text-sm font-bold truncate max-w-[120px]">{displayName}</p>
+                            <p className="text-[10px] text-foreground/50 truncate max-w-[120px]">{displayEmail}</p>
                         </div>
                     </div>
-                    <Link href="/" className="text-foreground/50 hover:text-red-400 transition-colors">
+                    <Link href="/" className="text-foreground/50 hover:text-red-400 transition-colors flex-shrink-0">
                         <LogOut size={18} />
                     </Link>
                 </div>

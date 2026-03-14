@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
 // In-memory store for rate limiting (Disclaimer: In a production environment with multiple server instances, use Redis or similar)
 type RateLimitInfo = { count: number; lastReset: number };
@@ -43,6 +44,44 @@ export async function middleware(request: NextRequest) {
     // 1. Maintenance Mode Gate (Exclude static files, API routes, or admin area so admins can turn it off)
     if (IS_MAINTENANCE_MODE && !path.startsWith('/api') && !path.startsWith('/admin') && !path.startsWith('/_next') && path !== '/maintenance') {
         return NextResponse.redirect(new URL('/maintenance', request.url));
+    }
+
+    // Pass through static assets
+    if (path.startsWith('/_next') || path.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
+        return NextResponse.next();
+    }
+
+    // 1.5 Route Protection (Auth & Role Authorization)
+    if (path.startsWith('/admin') || path.startsWith('/dashboard')) {
+        const token = request.cookies.get('token')?.value;
+
+        if (!token) {
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
+
+        try {
+            const secretStr = process.env.JWT_SECRET;
+            if (!secretStr) throw new Error("JWT_SECRET is not configured");
+            const secret = new TextEncoder().encode(secretStr);
+
+            const { payload } = await jwtVerify(token, secret);
+            const userRole = payload.role as string;
+
+            // Role-based access control
+            if (path.startsWith('/admin')) {
+                if (userRole !== 'SUPERADMIN' && userRole !== 'ADMIN') {
+                    // Users shouldn't access admin
+                    return NextResponse.redirect(new URL('/dashboard', request.url));
+                }
+            } else if (path.startsWith('/dashboard')) {
+                // Admin navigating to /dashboard is fine, or we could redirect them to /admin
+                // But definitely require being logged in (which is handled above).
+            }
+
+        } catch (error) {
+            // Token is invalid or expired
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
     }
 
     // Pass through static assets

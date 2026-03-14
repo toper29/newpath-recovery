@@ -1,11 +1,14 @@
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminTopbar from "@/components/admin/AdminTopbar";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+    const user = await getCurrentUser();
+
     return (
         <div className="min-h-screen bg-background text-foreground flex">
             {/* Sidebar - Fixes to the left */}
-            <AdminSidebar />
+            <AdminSidebar user={user} />
 
             {/* Main Content Wrapper */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
