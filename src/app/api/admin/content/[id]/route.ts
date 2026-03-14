@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         await prisma.article.delete({
-            where: { id: params.id }
+            where: { id: id }
         });
         return NextResponse.json({ success: true, message: "Article deleted" });
     } catch (error: any) {
@@ -13,11 +14,12 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const body = await request.json();
+        const { id } = await params;
         const updatedArticle = await prisma.article.update({
-            where: { id: params.id },
+            where: { id: id },
             data: {
                 title: body.title,
                 category: body.category,

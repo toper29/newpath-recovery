@@ -1,0 +1,102 @@
+
+> rehab-judi-slot@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.2s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/55) ...
+  Generating static pages using 11 workers (13/55) 
+  Generating static pages using 11 workers (27/55) 
+  Generating static pages using 11 workers (41/55) 
+✓ Generating static pages using 11 workers (55/55) in 619.9ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/admins
+├ ○ /admin/approve
+├ ○ /admin/content
+├ ○ /admin/features
+├ ○ /admin/features/thresholds
+├ ○ /admin/landing-page
+├ ○ /admin/logs
+├ ○ /admin/moderator
+├ ○ /admin/reports
+├ ○ /admin/security/dashboard
+├ ○ /admin/security/scanner
+├ ○ /admin/stats
+├ ○ /admin/stories
+├ ○ /admin/users
+├ ƒ /api/admin/admins
+├ ƒ /api/admin/content
+├ ƒ /api/admin/content/[id]
+├ ƒ /api/admin/landing-page
+├ ƒ /api/admin/logs
+├ ƒ /api/admin/reports
+├ ƒ /api/admin/reports/[id]
+├ ƒ /api/admin/seed-achievements
+├ ƒ /api/admin/settings
+├ ƒ /api/admin/stats
+├ ƒ /api/admin/thresholds
+├ ƒ /api/admin/users
+├ ƒ /api/admin/users/[id]
+├ ƒ /api/admin/users/[id]/reset-password
+├ ƒ /api/admin/users/pending
+├ ƒ /api/articles
+├ ƒ /api/articles/complete
+├ ƒ /api/auth/login
+├ ƒ /api/auth/register
+├ ƒ /api/landing-page
+├ ƒ /api/landing-page/stories
+├ ƒ /api/user/achievements
+├ ƒ /api/user/challenge
+├ ƒ /api/user/change-password
+├ ƒ /api/user/daily-checkin
+├ ƒ /api/user/feature-usage
+├ ƒ /api/user/game-finish
+├ ƒ /api/user/game-settings
+├ ƒ /api/user/me
+├ ƒ /api/user/report-site
+├ ƒ /api/user/update-profile
+├ ○ /dashboard
+├ ○ /dashboard/addiction-test
+├ ○ /dashboard/deposit-awareness
+├ ○ /dashboard/edukasi
+├ ○ /dashboard/emergency-wheel
+├ ○ /dashboard/money-talking
+├ ○ /dashboard/pelatihan
+├ ○ /dashboard/pelatihan/calm-breathing
+├ ○ /dashboard/pelatihan/dual-task
+├ ○ /dashboard/pelatihan/grid-memory
+├ ○ /dashboard/pelatihan/memory-card
+├ ○ /dashboard/pelatihan/number-memory
+├ ○ /dashboard/pelatihan/quick-math
+├ ○ /dashboard/pelatihan/reverse-number
+├ ○ /dashboard/pelatihan/sequence-memory
+├ ○ /dashboard/pelatihan/speed-counting
+├ ○ /dashboard/pelatihan/word-scramble
+├ ○ /dashboard/profile
+├ ○ /dashboard/reality-call
+├ ○ /dashboard/reality-simulator
+├ ○ /dashboard/recovery-challenge
+├ ○ /dashboard/recovery-journey
+├ ○ /dashboard/report-site
+├ ○ /dashboard/shame-meter
+├ ○ /dashboard/slot-trap
+├ ○ /login
+└ ○ /register
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
