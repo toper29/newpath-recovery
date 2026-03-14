@@ -103,6 +103,21 @@ export async function POST(request: Request) {
 
     } catch (error: any) {
         console.error("Login Error:", error);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+        
+        // Provide more detail for debugging during deployment phase
+        let errorMessage = "Internal server error";
+        if (error.message && error.message.includes("JWT_SECRET")) {
+            errorMessage = "Server configuration error: JWT_SECRET missing.";
+        } else if (error.code === 'P2002' || error.code?.startsWith('P')) {
+            errorMessage = `Database error (${error.code})`;
+        } else if (error.message) {
+            errorMessage = `Error: ${error.message}`;
+        }
+
+        return NextResponse.json({ 
+            success: false, 
+            error: errorMessage,
+            stack: process.env.NODE_ENV === "development" ? error.stack : undefined 
+        }, { status: 500 });
     }
 }
