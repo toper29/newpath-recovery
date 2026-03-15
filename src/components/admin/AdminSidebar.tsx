@@ -34,6 +34,8 @@ export const superAdminMenus = [
 
     // Group: Content & CMS
     { name: "Content Control", href: "/admin/content", icon: FileText },
+    { name: "FAQ Management", href: "/admin/faq", icon: FileText },
+    { name: "Features CMS", href: "/admin/features", icon: FileText },
     { name: "Stories / Testimoni", href: "/admin/stories", icon: FileText },
     { name: "Landing Page CMS", href: "/admin/landing-page", icon: LayoutDashboard },
 

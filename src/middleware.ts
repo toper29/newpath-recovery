@@ -52,8 +52,11 @@ export async function middleware(request: NextRequest) {
     }
 
     // 1.5 Route Protection (Auth & Role Authorization)
-    const publicPaths = ['/login', '/register', '/api/auth', '/api/articles', '/api/public'];
-    const isPublicPath = publicPaths.some(p => path.startsWith(p));
+    const publicPaths = ['/', '/login', '/register', '/api/auth', '/api/articles', '/api/public'];
+    const isPublicPath = publicPaths.some(p => {
+        if (p === '/') return path === '/';
+        return path.startsWith(p);
+    });
     
     // We only protect non-public paths
     if (!isPublicPath) {

@@ -175,3 +175,31 @@ model GamblingReport {
   updatedAt       DateTime @updatedAt
   user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
+
+model Feature {
+  id          String   @id @default(uuid())
+  iconName    String   // Lucide icon name string
+  title       String
+  description String
+  order       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+model FAQ {
+  id        String   @id @default(uuid())
+  question  String
+  answer    String   @db.Text
+  category  String?
+  order     Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id         String   @id @default(uuid())
+  author     String
+  role       String?  // e.g., "Ex-Gambler", "Counselor"
+  content    String   @db.Text
+  avatarUrl  String?
+  isFeatured Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}

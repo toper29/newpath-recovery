@@ -15,6 +15,8 @@ interface LandingContent {
 export default function Home() {
   const [content, setContent] = useState<LandingContent | null>(null);
   const [stories, setStories] = useState<any[]>([]);
+  const [features, setFeatures] = useState<any[]>([]);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
 
   useEffect(() => {
     fetch('/api/landing-page')
@@ -28,6 +30,18 @@ export default function Home() {
       .then(json => {
         if (json.success) setStories(json.data);
       });
+
+    fetch('/api/landing-page/features')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data.length > 0) setFeatures(json.data);
+      });
+
+    fetch('/api/landing-page/testimonials')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success && json.data.length > 0) setTestimonials(json.data);
+      });
   }, []);
 
   const data = content || {
@@ -36,6 +50,29 @@ export default function Home() {
     stats_users: "12,400+",
     stats_rate: "85%"
   };
+
+  const defaultFeatures = [
+    {
+      icon: Target,
+      title: "Emergency Anti-Deposit",
+      description: "Tunda impuls deposit Anda dengan teknik interaktif yang dirancang untuk mematahkan siklus emosional saat keinginan berjudi muncul.",
+      accent: "text-blue-400"
+    },
+    {
+      icon: BrainCircuit,
+      title: "Slot Trap Simulator",
+      description: "Pahami psikologi di balik desain mesin slot. Kami membongkar ilusi 'Near Miss' dan statistik RTP yang memanipulasi otak Anda.",
+      accent: "text-purple-400"
+    },
+    {
+      icon: Zap,
+      title: "Program 14 Hari",
+      description: "Panduan praktis langkah demi langkah untuk membangun kembali kebiasaan finansial dan emosional dalam 14 hari tanpa judi.",
+      accent: "text-yellow-400"
+    }
+  ];
+
+  const displayFeatures = features.length > 0 ? features : defaultFeatures;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -181,48 +218,33 @@ export default function Home() {
             variants={containerVariants}
             className="grid grid-cols-1 md:grid-cols-3 gap-10"
           >
-            {[
-              {
-                icon: Target,
-                title: "Emergency Anti-Deposit",
-                desc: "Tunda impuls deposit Anda dengan teknik interaktif yang dirancang untuk mematahkan siklus emosional saat keinginan berjudi muncul.",
-                accent: "text-blue-400"
-              },
-              {
-                icon: BrainCircuit,
-                title: "Slot Trap Simulator",
-                desc: "Pahami psikologi di balik desain mesin slot. Kami membongkar ilusi 'Near Miss' dan statistik RTP yang memanipulasi otak Anda.",
-                accent: "text-purple-400"
-              },
-              {
-                icon: Zap,
-                title: "Program 14 Hari",
-                desc: "Panduan praktis langkah demi langkah untuk membangun kembali kebiasaan finansial dan emosional dalam 14 hari tanpa judi.",
-                accent: "text-yellow-400"
-              }
-            ].map((feature, i) => (
-              <motion.div 
-                key={i} 
-                variants={itemVariants}
-                whileHover={{ y: -10 }}
-                className="group relative bg-[#0D1225] border border-primary/10 p-10 rounded-[32px] hover:border-accent/40 transition-colors overflow-hidden shadow-2xl"
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-accent/10 transition-colors" />
-                <div className={`w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center ${feature.accent} mb-8 shadow-inner group-hover:scale-110 transition-transform`}>
-                  <feature.icon size={32} />
-                </div>
-                <h4 className="text-2xl font-black text-foreground mb-4 group-hover:text-accent transition-colors">{feature.title}</h4>
-                <p className="text-foreground/50 leading-relaxed text-lg font-medium">
-                  {feature.desc}
-                </p>
-              </motion.div>
-            ))}
+            {displayFeatures.map((feature, i) => {
+              const IconComponent = feature.icon || Target;
+              return (
+                <motion.div 
+                  key={i} 
+                  variants={itemVariants}
+                  whileHover={{ y: -10 }}
+                  className="group relative bg-[#0D1225] border border-primary/10 p-10 rounded-[32px] hover:border-accent/40 transition-colors overflow-hidden shadow-2xl"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-accent/10 transition-colors" />
+                  <div className={`w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center ${feature.accent || 'text-accent'} mb-8 shadow-inner group-hover:scale-110 transition-transform`}>
+                    <IconComponent size={32} />
+                  </div>
+                  <h4 className="text-2xl font-black text-foreground mb-4 group-hover:text-accent transition-colors">{feature.title}</h4>
+                  <p className="text-foreground/50 leading-relaxed text-lg font-medium">
+                    {feature.description || feature.desc}
+                  </p>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </section>
 
-      {/* Stories Section */}
-      {stories.length > 0 && (
+
+      {/* Stories & Testimonials Section */}
+      {(stories.length > 0 || testimonials.length > 0) && (
         <section className="w-full py-24 px-4 relative">
           <div className="max-w-7xl mx-auto">
             <motion.div 
@@ -233,7 +255,7 @@ export default function Home() {
               className="flex flex-col items-center justify-center text-center mb-16"
             >
               <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-white mb-4 px-4 tracking-tighter uppercase italic">Mereka Berhasil Keluar</h2>
-              <p className="text-white/40 max-w-2xl text-base sm:text-lg px-6">Kisah nyata dari mereka yang berhasil menghentikan siklus kecanduan slot online bersama kami.</p>
+              <p className="text-white/40 max-w-2xl text-base sm:text-lg px-6">Kisah nyata dan testimoni dari mereka yang berhasil menghentikan siklus kecanduan slot online bersama kami.</p>
             </motion.div>
             
             <motion.div 
@@ -243,23 +265,34 @@ export default function Home() {
               variants={containerVariants}
               className="grid grid-cols-1 md:grid-cols-3 gap-6"
             >
-              {stories.map(story => (
+              {/* Combine and display both, limiting to 3-6 items */}
+              {[...testimonials, ...stories].slice(0, 6).map((item, idx) => (
                 <motion.div 
                   variants={itemVariants}
-                  key={story.id} 
-                  className="bg-[#0A0F1F] border border-primary/20 p-8 rounded-3xl hover:border-primary/40 transition-colors shadow-xl flex flex-col justify-between group"
+                  key={item.id || idx} 
+                  className="bg-[#0A0F1F] border border-primary/20 p-8 rounded-3xl hover:border-primary/40 transition-colors shadow-xl flex flex-col justify-between group h-full"
                 >
-                  <div>
+                  <div className="flex flex-col h-full">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center font-bold text-accent text-xl group-hover:bg-primary/30 transition-colors">
-                        {story.title.substring(0, 1)}
+                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center font-bold text-accent text-xl group-hover:bg-primary/30 transition-colors overflow-hidden">
+                        {(item.avatarUrl || item.thumbnail) ? (
+                          <img src={item.avatarUrl || item.thumbnail} alt={item.author || item.title} className="w-full h-full object-cover" />
+                        ) : (
+                          (item.author || item.title || "U").substring(0, 1)
+                        )}
                       </div>
                       <div>
-                        <h4 className="font-bold text-foreground text-lg group-hover:text-accent transition-colors">{story.title}</h4>
-                        <span className="text-xs text-foreground/40">{new Date(story.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</span>
+                        <h4 className="font-bold text-foreground text-lg group-hover:text-accent transition-colors truncate max-w-[150px]">
+                          {item.author || item.title}
+                        </h4>
+                        <span className="text-xs text-foreground/40">
+                          {item.role || (item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }) : "Survivor")}
+                        </span>
                       </div>
                     </div>
-                    <p className="text-foreground/70 text-sm leading-relaxed mb-6 italic">"{story.content.substring(0, 150)}{story.content.length > 150 ? "..." : ""}"</p>
+                    <p className="text-foreground/70 text-sm leading-relaxed mb-6 italic flex-grow">
+                      "{item.content.substring(0, 180)}{item.content.length > 180 ? "..." : ""}"
+                    </p>
                   </div>
                 </motion.div>
               ))}

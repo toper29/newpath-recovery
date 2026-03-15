@@ -1,260 +1,230 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Activity, MousePointerSquareDashed, Calculator, Search, ShieldAlert, Sliders, Settings, Plus, Trash2, Loader2, CheckCircle2 } from "lucide-react";
+import { Zap, Plus, Pencil, Trash2, Loader2, Save, X, Star } from "lucide-react";
 
-export default function FeatureControlPage() {
-    const [safeProb, setSafeProb] = useState(85);
-    const [failProb, setFailProb] = useState(15);
-    const [saving, setSaving] = useState(false);
+interface Feature {
+    id: string;
+    title: string;
+    description: string;
+    iconName: string;
+    order: number;
+}
+
+export default function FeaturesManagementPage() {
+    const [features, setFeatures] = useState<Feature[]>([]);
     const [loading, setLoading] = useState(true);
-    const [savedSuccess, setSavedSuccess] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    
+    // Form state
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [iconName, setIconName] = useState("Target");
+    const [order, setOrder] = useState(0);
 
-    const [featureState, setFeatureState] = useState<Record<string, boolean>>({
-        "feature_emergency_wheel": true,
-        "feature_reality_simulator": true,
-        "feature_addiction_test": true,
-        "feature_recovery_challenge": true,
-        "feature_money_talking": true,
-    });
-
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const res = await fetch("/api/admin/settings");
-                const json = await res.json();
-                if (json.success && json.data) {
-                    if (json.data.wheel_safe_prob !== undefined) setSafeProb(Number(json.data.wheel_safe_prob));
-                    if (json.data.wheel_fail_prob !== undefined) setFailProb(Number(json.data.wheel_fail_prob));
-                    
-                    const newFeatState = { ...featureState };
-                    Object.keys(newFeatState).forEach(k => {
-                        if (json.data[k] !== undefined) {
-                            newFeatState[k] = json.data[k] === "true";
-                        }
-                    });
-                    setFeatureState(newFeatState);
-                }
-            } catch (err) {
-                console.error("Failed to load settings", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchSettings();
-    }, []);
-
-    const handleSafeChange = (val: number) => {
-        const clamped = Math.max(0, Math.min(100, val));
-        setSafeProb(clamped);
-        setFailProb(100 - clamped);
-        setSavedSuccess(false);
-    };
-
-    const handleFailChange = (val: number) => {
-        const clamped = Math.max(0, Math.min(100, val));
-        setFailProb(clamped);
-        setSafeProb(100 - clamped);
-        setSavedSuccess(false);
-    };
-
-    const handleFeatureToggle = (id: string) => {
-        const key = `feature_${id.replace(/-/g, '_')}`;
-        setFeatureState(prev => ({ ...prev, [key]: !prev[key] }));
-        setSavedSuccess(false);
-    };
-
-    const handleSave = async () => {
-        setSaving(true);
-        setSavedSuccess(false);
+    const fetchFeatures = async () => {
+        setLoading(true);
         try {
-            await fetch("/api/admin/settings", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    wheel_safe_prob: safeProb,
-                    wheel_fail_prob: failProb,
-                    ...featureState
-                })
-            });
-            setSavedSuccess(true);
-            setTimeout(() => setSavedSuccess(false), 3000);
+            const res = await fetch("/api/admin/features");
+            const json = await res.json();
+            if (json.success) setFeatures(json.data);
         } catch (err) {
-            console.error("Failed to save settings", err);
+            console.error("Failed to fetch features", err);
         } finally {
-            setSaving(false);
+            setLoading(false);
         }
     };
-    const features = [
-        {
-            id: "emergency-wheel",
-            name: "Emergency Anti-Deposit Wheel",
-            badge: "CRITICAL",
-            desc: "Immediate intervention tool for high-risk gambling urges. Customizable probabilities below.",
-            lastUpdated: "Hari ini",
-            icon: ShieldAlert,
-            active: true
-        },
-        {
-            id: "reality-simulator",
-            name: "Reality Simulator",
-            desc: "Simulates spins to visualize true mathematical loss. Settings adjustable in Simulator Settings.",
-            lastUpdated: "Kemarin",
-            icon: Activity,
-            active: true
-        },
-        {
-            id: "addiction-test",
-            name: "Addiction Test",
-            desc: "Self-diagnostic questionnaire to evaluate severity of gambling habits.",
-            lastUpdated: "3 hari lalu",
-            icon: Search,
-            active: true
-        },
-        {
-            id: "recovery-challenge",
-            name: "14-Day Challenge",
-            badge: "CORE",
-            desc: "Gamified recovery roadmap with daily tasks and psychological milestones.",
-            lastUpdated: "Hari ini",
-            icon: MousePointerSquareDashed,
-            active: true
-        },
-        {
-            id: "money-talking",
-            name: "Your Money Talking",
-            desc: "Expense visualizer that converts gambling losses into real-world items to highlight opportunity cost.",
-            lastUpdated: "2 minggu lalu",
-            icon: Calculator,
-            active: true
-        },
-    ];
 
-    const wheelItems = [
-        "Bukan hari keberuntunganmu",
-        "Simpan uangmu hari ini",
-        "Coba lagi besok",
-        "Uangmu lebih berharga",
-        "Slot menang, kamu kalah",
-    ];
+    useEffect(() => {
+        fetchFeatures();
+    }, []);
+
+    const handleSave = async () => {
+        if (!title.trim() || !description.trim()) return alert("Title and description are required.");
+        setIsSaving(true);
+        try {
+            const url = editingId ? `/api/admin/features/${editingId}` : "/api/admin/features";
+            const method = editingId ? "PUT" : "POST";
+            
+            const res = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, description, iconName, order: Number(order) })
+            });
+            const json = await res.json();
+            if (json.success) {
+                resetForm();
+                fetchFeatures();
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Failed to save feature");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Delete this feature?")) return;
+        try {
+            const res = await fetch(`/api/admin/features/${id}`, { method: "DELETE" });
+            const json = await res.json();
+            if (json.success) {
+                setFeatures(prev => prev.filter(f => f.id !== id));
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const startEdit = (feature: Feature) => {
+        setEditingId(feature.id);
+        setTitle(feature.title);
+        setDescription(feature.description);
+        setIconName(feature.iconName || "Target");
+        setOrder(feature.order);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const resetForm = () => {
+        setEditingId(null);
+        setTitle("");
+        setDescription("");
+        setIconName("Target");
+        setOrder(0);
+    };
 
     return (
-        <div className="space-y-6 max-w-6xl">
+        <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <div>
                     <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                        <Sliders className="text-accent" /> Feature & Logic Settings
+                        <Zap className="text-accent" /> Features Management
                     </h2>
-                    <p className="text-sm text-foreground/50">Atur logika fitur interaktif dan kontrol ketersediaannya secara global.</p>
+                    <p className="text-sm text-foreground/50">Kelola fitur-fitur utama yang ditampilkan di Landing Page.</p>
                 </div>
-                <button 
-                    onClick={handleSave} 
-                    disabled={loading || saving}
-                    className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-secondary transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
-                >
-                    {saving ? <Loader2 size={18} className="animate-spin" /> : (
-                        savedSuccess ? <CheckCircle2 size={18} className="text-green-400" /> : <Settings size={18} />
-                    )}
-                    {savedSuccess ? "Tersimpan" : "Save All Changes"}
-                </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Global Toggles */}
-                <div className="space-y-4">
-                    <h3 className="font-bold text-foreground/80 uppercase tracking-wider text-xs mb-2">Global Feature Toggles</h3>
-                    {features.map((feature) => (
-                        <div key={feature.id} className="bg-[#0A0F1F] border border-primary/20 rounded-2xl p-4 flex items-start gap-4 hover:bg-primary/5 transition-colors">
-                            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-accent flex-shrink-0 mt-0.5">
-                                <feature.icon size={20} />
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h4 className="text-sm font-bold text-foreground">{feature.name}</h4>
-                                    {feature.badge && (
-                                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold tracking-wider ${feature.badge === 'CRITICAL' ? 'bg-red-500/20 text-red-500' : 'bg-primary/20 text-accent'}`}>
-                                            {feature.badge}
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-foreground/50 text-xs leading-relaxed">{feature.desc}</p>
-                            </div>
-                            <div className="flex-shrink-0 flex self-center ml-2" onClick={() => handleFeatureToggle(feature.id)}>
-                                <div className={`w-10 h-6 rounded-full flex items-center p-1 cursor-pointer transition-colors ${featureState[`feature_${feature.id.replace(/-/g, '_')}`] ? 'bg-primary' : 'bg-foreground/10'}`}>
-                                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${featureState[`feature_${feature.id.replace(/-/g, '_')}`] ? 'translate-x-4' : 'translate-x-0'}`} />
-                                </div>
-                            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Feature Form */}
+                <div className="lg:col-span-1 border border-primary/20 bg-[#0A0F1F] rounded-2xl p-6 h-fit sticky top-6">
+                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                        {editingId ? <Pencil size={18} className="text-accent" /> : <Plus size={18} className="text-accent" />}
+                        {editingId ? "Edit Feature" : "Add New Feature"}
+                    </h3>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-bold text-foreground/70 uppercase mb-1.5">Feature Title</label>
+                            <input 
+                                type="text" 
+                                value={title} 
+                                onChange={e => setTitle(e.target.value)} 
+                                placeholder="e.g. Emergency Anti-Deposit" 
+                                className="w-full bg-foreground/5 border border-primary/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-accent transition-colors" 
+                            />
                         </div>
-                    ))}
-                </div>
-
-                {/* Specific Feature Logistics: Emergency Wheel */}
-                <div className="space-y-4">
-                    <h3 className="font-bold text-foreground/80 uppercase tracking-wider text-xs mb-2">Emergency Wheel Configuration</h3>
-
-                    <div className="bg-[#0A0F1F] border border-primary/20 rounded-2xl p-6">
-                        <h4 className="font-bold text-sm mb-4">Probabilitas Hasil Putaran</h4>
-                        <div className="space-y-5">
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-xs font-bold text-accent">Tidak Deposit (Aman)</span>
-                                    <input 
-                                        type="number" 
-                                        value={safeProb} 
-                                        onChange={(e) => handleSafeChange(Number(e.target.value))}
-                                        className="w-16 bg-foreground/5 border border-primary/30 rounded py-1 text-center text-xs font-bold text-accent outline-none" 
-                                        disabled={loading}
-                                    />
-                                    <span className="text-xs text-foreground/50">%</span>
-                                </div>
-                                <div className="w-full bg-foreground/10 rounded-full h-2">
-                                    <div className="bg-accent h-full rounded-full transition-all" style={{ width: `${safeProb}%` }}></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="text-xs font-bold text-red-500">Silakan Deposit (Gagal)</span>
-                                    <input 
-                                        type="number" 
-                                        value={failProb} 
-                                        onChange={(e) => handleFailChange(Number(e.target.value))}
-                                        className="w-16 bg-foreground/5 border border-red-500/30 rounded py-1 text-center text-xs font-bold text-red-500 outline-none" 
-                                        disabled={loading}
-                                    />
-                                    <span className="text-xs text-foreground/50">%</span>
-                                </div>
-                                <div className="w-full bg-foreground/10 rounded-full h-2">
-                                    <div className="bg-red-500 h-full rounded-full transition-all" style={{ width: `${failProb}%` }}></div>
-                                </div>
-                            </div>
-                            <p className="text-[10px] text-foreground/40 italic">Note: Total harus 100%. Algoritma wheel akan ditarik ke probabilitas ini.</p>
+                        <div>
+                            <label className="block text-xs font-bold text-foreground/70 uppercase mb-1.5">Icon Name (Lucide)</label>
+                            <select 
+                                value={iconName} 
+                                onChange={e => setIconName(e.target.value)} 
+                                className="w-full bg-foreground/5 border border-primary/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-accent transition-colors"
+                            >
+                                <option value="Target">Target</option>
+                                <option value="BrainCircuit">BrainCircuit</option>
+                                <option value="Zap">Zap</option>
+                                <option value="ShieldCheck">ShieldCheck</option>
+                                <option value="Heart">Heart</option>
+                                <option value="AlertTriangle">AlertTriangle</option>
+                            </select>
                         </div>
-
-                        <div className="my-6 border-t border-primary/10"></div>
-
-                        <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-bold text-sm">Pesan pada Wheel (Sektor Aman)</h4>
-                            <button className="text-[10px] font-bold bg-primary/20 text-accent px-2 py-1 rounded hover:bg-primary transition-colors flex items-center gap-1">
-                                <Plus size={12} /> Tambah
+                        <div>
+                            <label className="block text-xs font-bold text-foreground/70 uppercase mb-1.5">Display Order</label>
+                            <input 
+                                type="number" 
+                                value={order} 
+                                onChange={e => setOrder(Number(e.target.value))} 
+                                className="w-full bg-foreground/5 border border-primary/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-accent transition-colors" 
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-foreground/70 uppercase mb-1.5">Description</label>
+                            <textarea 
+                                rows={5} 
+                                value={description} 
+                                onChange={e => setDescription(e.target.value)} 
+                                placeholder="Jelaskan kegunaan fitur ini..." 
+                                className="w-full bg-foreground/5 border border-primary/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-accent transition-colors resize-none"
+                            ></textarea>
+                        </div>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={handleSave} 
+                                disabled={isSaving} 
+                                className="flex-1 py-3 bg-accent hover:bg-accent/90 text-background font-bold rounded-xl transition-all shadow-lg shadow-accent/20 disabled:opacity-50 flex justify-center items-center gap-2"
+                            >
+                                {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                                {editingId ? "Update Feature" : "Save Feature"}
                             </button>
-                        </div>
-
-                        <div className="space-y-2">
-                            {wheelItems.map((item, i) => (
-                                <div key={i} className="flex items-center gap-2 bg-foreground/5 border border-primary/10 rounded-lg p-2 group">
-                                    <input type="text" defaultValue={item} className="flex-1 bg-transparent text-xs text-foreground outline-none px-2" />
-                                    <button className="text-foreground/30 hover:text-red-500 transition-colors px-2 opacity-0 group-hover:opacity-100">
-                                        <Trash2 size={14} />
-                                    </button>
-                                </div>
-                            ))}
-                            {/* The "Silakan deposit" is hardcoded visually or mapped from DB for the failing wedge */}
-                            <div className="flex items-center gap-2 bg-red-500/5 border border-red-500/20 rounded-lg p-2 mt-2">
-                                <span className="text-[10px] font-bold text-red-500 px-2 uppercase tracking-wider w-16">Wedge Gagal</span>
-                                <input type="text" defaultValue="Silakan deposit" className="flex-1 bg-transparent text-xs text-red-500 font-bold outline-none px-2" />
-                            </div>
+                            {editingId && (
+                                <button 
+                                    onClick={resetForm} 
+                                    className="px-4 py-3 bg-foreground/10 hover:bg-foreground/20 text-foreground rounded-xl transition-all"
+                                >
+                                    <X size={18} />
+                                </button>
+                            )}
                         </div>
                     </div>
+                </div>
+
+                {/* Feature List */}
+                <div className="lg:col-span-2 space-y-4">
+                    {loading ? (
+                        <div className="py-20 text-center bg-[#0A0F1F] border border-primary/20 rounded-2xl">
+                            <Loader2 className="w-8 h-8 animate-spin text-accent mx-auto" />
+                        </div>
+                    ) : features.length === 0 ? (
+                        <div className="py-20 text-center bg-[#0A0F1F] border border-primary/20 rounded-2xl text-foreground/50">
+                            No features added yet.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {features.map((feature) => (
+                                <div key={feature.id} className="bg-[#0A0F1F] border border-primary/20 rounded-2xl p-6 hover:border-primary/40 transition-all group relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-3 flex gap-2">
+                                        <button 
+                                            onClick={() => startEdit(feature)}
+                                            className="p-2 bg-foreground/5 hover:bg-primary/20 text-accent rounded-lg border border-primary/10 transition-colors"
+                                        >
+                                            <Pencil size={12} />
+                                        </button>
+                                        <button 
+                                            onClick={() => handleDelete(feature.id)}
+                                            className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg border border-red-500/20 transition-colors"
+                                        >
+                                            <Trash2 size={12} />
+                                        </button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-accent">
+                                            <Star size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-lg text-foreground mb-1 group-hover:text-accent transition-colors">
+                                                {feature.title}
+                                            </h4>
+                                            <p className="text-xs text-foreground/40 mb-3">Order: {feature.order}</p>
+                                            <p className="text-sm text-foreground/60 leading-relaxed italic">
+                                                "{feature.description}"
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

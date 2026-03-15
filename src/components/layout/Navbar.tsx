@@ -8,9 +8,9 @@ export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const navLinks = [
-        { name: "Fitur Utama", href: "#fitur" },
-        { name: "Edukasi", href: "#edukasi" },
-        { name: "Program 14 Hari", href: "#program" },
+        { name: "Fitur Utama", href: "/#fitur" },
+        { name: "Edukasi", href: "/#edukasi" },
+        { name: "Program 14 Hari", href: "/#program" },
     ];
 
     return (
