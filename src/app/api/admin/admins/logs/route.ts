@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
     try {
-        const logs = await prisma.adminLog.findMany({
+        const logs = await prisma.AdminLog.findMany({
             orderBy: { createdAt: "desc" },
             take: 50
         });
@@ -23,7 +23,12 @@ export async function GET() {
 
         return NextResponse.json({ success: true, data: formatted });
     } catch (error: any) {
-        console.error("Admins Logs API GET Error:", error);
-        return NextResponse.json({ success: false, error: "Failed to fetch admin logs" }, { status: 500 });
+        console.error("Admins Logs API GET Error Details:", {
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            meta: error.meta
+        });
+        return NextResponse.json({ success: false, error: "Failed to fetch admin logs", details: error.message }, { status: 500 });
     }
 }

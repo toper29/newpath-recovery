@@ -21,8 +21,13 @@ export async function GET() {
 
         return NextResponse.json({ success: true, data: formatted });
     } catch (error: any) {
-        console.error("Admins API GET Error:", error);
-        return NextResponse.json({ success: false, error: "Failed to fetch admins" }, { status: 500 });
+        console.error("Admins API GET Error Details:", {
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            meta: error.meta
+        });
+        return NextResponse.json({ success: false, error: "Failed to fetch admins", details: error.message }, { status: 500 });
     }
 }
 
@@ -62,7 +67,7 @@ export async function POST(request: Request) {
         // Log the activity
         const currentUser = await getCurrentUser();
         if (currentUser) {
-            await prisma.adminLog.create({
+            await prisma.AdminLog.create({
                 data: {
                     adminId: currentUser.userId,
                     adminName: currentUser.email,
@@ -80,7 +85,12 @@ export async function POST(request: Request) {
             date: new Date(newAdmin.createdAt).toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
         }});
     } catch (error: any) {
-        console.error("Admins API POST Error:", error);
-        return NextResponse.json({ success: false, error: "Failed to create admin" }, { status: 500 });
+        console.error("Admins API POST Error Details:", {
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            meta: error.meta
+        });
+        return NextResponse.json({ success: false, error: "Failed to create admin", details: error.message }, { status: 500 });
     }
 }

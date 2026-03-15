@@ -39,7 +39,7 @@ export async function PATCH(
         });
 
         // Log the activity
-        await prisma.adminLog.create({
+        await prisma.AdminLog.create({
             data: {
                 adminId: currentUser.userId,
                 adminName: currentUser.email,
@@ -51,8 +51,13 @@ export async function PATCH(
 
         return NextResponse.json({ success: true, data: updated });
     } catch (error: any) {
-        console.error("Patch Admin Error:", error);
-        return NextResponse.json({ success: false, error: "Failed to update admin" }, { status: 500 });
+        console.error("Patch Admin Error Details:", {
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            meta: error.meta
+        });
+        return NextResponse.json({ success: false, error: "Failed to update admin", details: error.message }, { status: 500 });
     }
 }
 
@@ -78,7 +83,7 @@ export async function DELETE(
         await prisma.user.delete({ where: { id } });
 
         // Log the activity
-        await prisma.adminLog.create({
+        await prisma.AdminLog.create({
             data: {
                 adminId: currentUser.userId,
                 adminName: currentUser.email,
@@ -90,7 +95,12 @@ export async function DELETE(
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error("Delete Admin Error:", error);
-        return NextResponse.json({ success: false, error: "Failed to delete admin" }, { status: 500 });
+        console.error("Delete Admin Error Details:", {
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+            meta: error.meta
+        });
+        return NextResponse.json({ success: false, error: "Failed to delete admin", details: error.message }, { status: 500 });
     }
 }
