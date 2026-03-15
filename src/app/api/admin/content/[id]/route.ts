@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
+import { logAdminActivity } from "@/lib/audit";
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -7,6 +8,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
         await prisma.article.delete({
             where: { id: id }
         });
+
+        // Log the activity
+        await logAdminActivity({
+            action: "DELETE_ARTICLE",
+            details: { articleId: id }
+        });
+
         return NextResponse.json({ success: true, message: "Article deleted" });
     } catch (error: any) {
         console.error("Article Delete Error:", error);
@@ -27,6 +35,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
                 thumbnail: body.thumbnail
             }
         });
+
+        // Log the activity
+        await logAdminActivity({
+            action: "UPDATE_ARTICLE",
+            target: updatedArticle.title,
+            details: { articleId: id }
+        });
+
         return NextResponse.json({ success: true, data: updatedArticle });
     } catch (error: any) {
         console.error("Article Patch Error:", error);

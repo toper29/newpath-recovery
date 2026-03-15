@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { getCurrentUser } from "@/lib/auth";
+import { logAdminActivity } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -65,18 +66,11 @@ export async function POST(request: Request) {
         });
 
         // Log the activity
-        const currentUser = await getCurrentUser();
-        if (currentUser) {
-            await prisma.adminLog.create({
-                data: {
-                    adminId: currentUser.userId,
-                    adminName: currentUser.email,
-                    action: "CREATE_ADMIN",
-                    target: newAdmin.username,
-                    details: `Created new superadmin: ${newAdmin.username} (${newAdmin.email})`
-                }
-            });
-        }
+        await logAdminActivity({
+            action: "CREATE_ADMIN",
+            target: newAdmin.username,
+            details: { email: newAdmin.email }
+        });
 
         return NextResponse.json({ success: true, data: {
             id: newAdmin.id,

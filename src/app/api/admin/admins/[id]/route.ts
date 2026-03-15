@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { getCurrentUser } from "@/lib/auth";
+import { logAdminActivity } from "@/lib/audit";
 
 export async function PATCH(
     request: Request,
@@ -39,14 +40,10 @@ export async function PATCH(
         });
 
         // Log the activity
-        await prisma.adminLog.create({
-            data: {
-                adminId: currentUser.userId,
-                adminName: currentUser.email,
-                action: action,
-                target: admin.username,
-                details: detail
-            }
+        await logAdminActivity({
+            action: action,
+            target: admin.username,
+            details: { detail }
         });
 
         return NextResponse.json({ success: true, data: updated });
@@ -83,14 +80,10 @@ export async function DELETE(
         await prisma.user.delete({ where: { id } });
 
         // Log the activity
-        await prisma.adminLog.create({
-            data: {
-                adminId: currentUser.userId,
-                adminName: currentUser.email,
-                action: "DELETE_ADMIN",
-                target: admin.username,
-                details: `Deleted admin account: ${admin.username} (${admin.email})`
-            }
+        await logAdminActivity({
+            action: "DELETE_ADMIN",
+            target: admin.username,
+            details: { email: admin.email }
         });
 
         return NextResponse.json({ success: true });

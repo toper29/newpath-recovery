@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
+import { logAdminActivity } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,13 @@ export async function POST(request: Request) {
                 thumbnail: body.thumbnail || "",
                 createdBy: body.author || "Super Admin"
             }
+        });
+
+        // Log the activity
+        await logAdminActivity({
+            action: "CREATE_ARTICLE",
+            target: newArticle.title,
+            details: { category: newArticle.category }
         });
 
         return NextResponse.json({ success: true, data: newArticle });
