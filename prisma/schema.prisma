@@ -203,3 +203,13 @@ model Testimonial {
   isFeatured Boolean  @default(false)
   createdAt  DateTime @default(now())
 }
+
+model AdminLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  adminName String
+  action    String   // e.g., "CREATE_ADMIN", "UPDATE_ADMIN", "DELETE_ADMIN", "RESET_PASSWORD"
+  target    String?  // e.g., username or ID of target
+  details   String?
+  createdAt DateTime @default(now())
+}
