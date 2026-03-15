@@ -43,7 +43,7 @@ export default function UserManagementPage() {
     const handleDownloadReport = async (userId: string) => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/admin/reports/${userId}`);
+            const res = await fetch(`/api/admin/users/${userId}/report`);
             const json = await res.json();
             if (json.success) {
                 // Open report in new window for printing
