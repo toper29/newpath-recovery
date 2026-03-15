@@ -95,117 +95,122 @@ export default function AdminReportsPage() {
                             const printWindow = window.open('', '_blank');
                             if (printWindow) {
                                 printWindow.document.write(`
-                                    <html>
-                                        <head>
-                                            <title>Official Gambling Site Report - NewPath Recovery</title>
-                                            <style>
-                                                body { font-family: 'Inter', sans-serif; padding: 50px; color: #111; line-height: 1.6; }
-                                                .header { border-bottom: 3px solid #000; padding-bottom: 20px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
-                                                .logo-area { display: flex; align-items: center; gap: 15px; }
-                                                .logo-text { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
-                                                .report-info { text-align: right; }
-                                                .report-title { font-size: 22px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
-                                                .section { margin-bottom: 40px; }
-                                                .section-title { font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-                                                .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-                                                .stat-box { border: 1px solid #eee; padding: 20px; border-radius: 12px; }
-                                                .stat-label { font-size: 10px; font-weight: 700; color: #666; text-transform: uppercase; margin-bottom: 5px; }
-                                                .stat-value { font-size: 24px; font-weight: 800; }
-                                                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                                                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 12px; }
-                                                th { background: #f8f9fa; font-weight: 800; text-transform: uppercase; font-size: 10px; }
-                                                .domain-pill { padding: 4px 8px; background: #eee; border-radius: 6px; font-family: monospace; }
-                                                .footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid #eee; font-size: 10px; color: #999; display: flex; justify-content: space-between; }
-                                            </style>
-                                        </head>
-                                        <body>
-                                            <div class="header">
-                                                <div class="logo-area">
-                                                    <div class="logo-text">NEWPATH RECOVERY</div>
-                                                </div>
-                                                <div class="report-info">
-                                                    <div class="report-title">Gambling Site Monitoring Report</div>
-                                                    <div style="font-size: 10px; font-weight: 600;">DOC-ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()} | ${new Date().toLocaleDateString()}</div>
-                                                </div>
-                                            </div>
+                                                            <html>
+                                                                <head>
+                                                                    <title>Official Gambling Site Report - NewPath Recovery</title>
+                                                                    <style>
+                                                                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+                                                                        body { font-family: 'Inter', sans-serif; padding: 50px; color: #1f2937; line-height: 1.5; }
+                                                                        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 4px solid #ef4444; padding-bottom: 25px; margin-bottom: 40px; }
+                                                                        .logo-container { display: flex; align-items: center; gap: 15px; }
+                                                                        .logo-img { height: 60px; width: auto; }
+                                                                        .logo-text { font-size: 28px; font-weight: 950; letter-spacing: -1.5px; color: #ef4444; text-transform: uppercase; }
+                                                                        .report-meta { text-align: right; }
+                                                                        .report-title { font-size: 24px; font-weight: 900; text-transform: uppercase; color: #111; margin-bottom: 2px; }
+                                                                        .section { margin-bottom: 40px; page-break-inside: avoid; }
+                                                                        .section-title { font-size: 14px; font-weight: 900; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; color: #ef4444; }
+                                                                        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+                                                                        .stat-card { background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #f1f5f9; }
+                                                                        .stat-value { font-size: 32px; font-weight: 900; color: #111; line-height: 1; }
+                                                                        .stat-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 5px; }
+                                                                        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+                                                                        th { background: #f1f5f9; text-align: left; padding: 12px; font-weight: 800; text-transform: uppercase; font-size: 10px; color: #475569; }
+                                                                        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+                                                                        .domain-pill { font-family: 'JetBrains Mono', monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-weight: 700; border: 1px solid #e2e8f0; }
+                                                                        .footer { margin-top: 80px; padding-top: 30px; border-top: 2px solid #f1f5f9; text-align: center; font-size: 10px; color: #94a3b8; }
+                                                                        @media print { .no-print { display: none; } }
+                                                                    </style>
+                                                                </head>
+                                                                <body>
+                                                                    <div class="header">
+                                                                        <div class="logo-container">
+                                                                            <img src="/logo.png" alt="NewPath Logo" class="logo-img" onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='block'">
+                                                                            <div id="logoFallback" class="logo-text" style="display:none">NEWPATH RECOVERY</div>
+                                                                        </div>
+                                                                        <div class="report-meta">
+                                                                            <div class="report-title">Gambling Site Exposure Monitoring</div>
+                                                                            <div style="font-weight: 700; font-size: 12px; color: #64748b;">DOC-ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()} | ${new Date().toLocaleDateString()}</div>
+                                                                        </div>
+                                                                    </div>
 
-                                            <div class="section">
-                                                <div class="section-title">Summary Statistics</div>
-                                                <div class="summary-grid">
-                                                    <div class="stat-box">
-                                                        <div class="stat-label">Total Reports Received</div>
-                                                        <div class="stat-value">${data.summary.totalReports}</div>
-                                                    </div>
-                                                    <div class="stat-box">
-                                                        <div class="stat-label">Identified Distinct Sites</div>
-                                                        <div class="stat-value">${data.reports.length}</div>
-                                                    </div>
-                                                    <div class="stat-box">
-                                                        <div class="stat-label">User Engagement Rate</div>
-                                                        <div class="stat-value">${Math.round((data.summary.totalReports / 14) * 100)}%</div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                                    <div class="section">
+                                                                        <div class="section-title">Critical Insight Summary</div>
+                                                                        <div class="grid">
+                                                                            <div class="stat-card">
+                                                                                <div class="stat-value">${data.summary.totalReports}</div>
+                                                                                <div class="stat-label">Total Submissions Received</div>
+                                                                            </div>
+                                                                            <div class="stat-card">
+                                                                                <div class="stat-value">${data.reports.length}</div>
+                                                                                <div class="stat-label">Unique Domains Monitored</div>
+                                                                            </div>
+                                                                            <div class="stat-card">
+                                                                                <div class="stat-value" style="color: #ef4444;">${Math.round((data.summary.totalReports / 14) * 100)}%</div>
+                                                                                <div class="stat-label">System Saturation Index</div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
 
-                                            <div class="section">
-                                                <div class="section-title">Top 5 Reported Domains</div>
-                                                <table>
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Domain Name</th>
-                                                            <th>Frequency</th>
-                                                            <th>Status</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        ${data.summary.topDomains.map(([domain, count]: any) => `
-                                                            <tr>
-                                                                <td class="domain-pill">${domain}</td>
-                                                                <td><strong>${count}</strong> times</td>
-                                                                <td><span style="color: red; font-weight: bold;">[MONITORED]</span></td>
-                                                            </tr>
-                                                        `).join('')}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                                                    <div class="section">
+                                                                        <div class="section-title">Verified High-Risk Domains</div>
+                                                                        <table>
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th style="width: 40%">Target Domain</th>
+                                                                                    <th style="width: 30%">Incident Frequency</th>
+                                                                                    <th style="width: 30%">Risk Classification</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                ${data.summary.topDomains.map(([domain, count]: any) => `
+                                                                                    <tr>
+                                                                                        <td><span class="domain-pill">${domain}</span></td>
+                                                                                        <td><strong>${count}</strong> documented incidents</td>
+                                                                                        <td><span style="color: #ef4444; font-weight: 800; border: 1px solid #fee2e2; padding: 4px 10px; border-radius: 6px; background: #fee2e2;">CRITICAL EXPOSURE</span></td>
+                                                                                    </tr>
+                                                                                `).join('')}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
 
-                                            <div class="section">
-                                                <div class="section-title">Detailed Submission Log</div>
-                                                <table>
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Date</th>
-                                                            <th>Site Name</th>
-                                                            <th>URL</th>
-                                                            <th>Reporter</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        ${data.reports.slice(0, 20).map((r: any) => `
-                                                            <tr>
-                                                                <td>${new Date(r.createdAt).toLocaleDateString()}</td>
-                                                                <td><strong>${r.siteName}</strong></td>
-                                                                <td style="color: #666; font-size: 10px;">${r.siteLink}</td>
-                                                                <td>@${r.user?.username || 'Anonymous'}</td>
-                                                            </tr>
-                                                        `).join('')}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                                                    <div class="section">
+                                                                        <div class="section-title">Comprehensive Audit Trail (Latest 20)</div>
+                                                                        <table>
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th>Date</th>
+                                                                                    <th>Platform Alias</th>
+                                                                                    <th>Source URL</th>
+                                                                                    <th>Source ID</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                ${data.reports.slice(0, 20).map((r: any) => `
+                                                                                    <tr>
+                                                                                        <td><strong>${new Date(r.createdAt).toLocaleDateString()}</strong></td>
+                                                                                        <td><strong>${r.siteName}</strong></td>
+                                                                                        <td style="color: #64748b; font-size: 10px;">${r.siteLink}</td>
+                                                                                        <td><span style="font-family: monospace;">@${r.user?.username || 'ANONYMOUS'}</span></td>
+                                                                                    </tr>
+                                                                                `).join('')}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
 
-                                            <div class="footer">
-                                                <div>&copy; 2025 NewPath Recovery Behavioral Analytics</div>
-                                                <div>CLASSIFIED: INTERNAL USE ONLY</div>
-                                            </div>
-                                            <script>window.print();</script>
-                                        </body>
-                                    </html>
-                                `);
-                                printWindow.document.close();
-                            }
-                        }
-                    }}
-                    className="flex items-center gap-2 px-6 py-3 bg-white text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-red-500 transition-all shadow-xl group"
+                                                                    <div class="footer">
+                                                                        <p>&copy; ${new Date().getFullYear()} NewPath Recovery Behavioral Analytics Group. Strictly Confidential.</p>
+                                                                        <p>This document is automatically generated for regulatory compliance and behavioral monitoring.</p>
+                                                                        <p>CLASSIFIED: INTERNAL GOVERNMENT/MEDICAL USE ONLY</p>
+                                                                    </div>
+                                                                    <button class="no-print" onclick="window.print()" style="position: fixed; bottom: 30px; right: 30px; background: #ef4444; color: white; border: none; padding: 15px 30px; border-radius: 99px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); text-transform: uppercase; letter-spacing: 1px;">Confirm Print / Download PDF</button>
+                                                                </body>
+                                                            </html>
+                                                        `);
+                                                        printWindow.document.close();
+                                                    }
+                                                }
+                                            }}
+                                            className="flex items-center gap-2 px-6 py-3 bg-white text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-red-500 transition-all shadow-xl group"
                 >
                     <Download size={16} className="group-hover:animate-bounce" /> Download Official Site Report
                 </button>

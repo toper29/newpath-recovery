@@ -20,8 +20,8 @@ export async function GET(
         const user = await prisma.user.findUnique({
             where: { id },
             include: {
-                dailyCheckIns: { orderBy: { checkedAt: "asc" }, take: 30 },
-                addictionTests: { orderBy: { createdAt: "desc" }, take: 10 },
+                dailyCheckIns: { orderBy: { checkedAt: "asc" } },
+                addictionTests: { orderBy: { createdAt: "desc" } },
                 gamblingReports: { orderBy: { createdAt: "desc" } }
             }
         });

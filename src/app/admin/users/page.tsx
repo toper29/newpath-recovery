@@ -50,97 +50,127 @@ export default function UserManagementPage() {
                 const reportData = json.data;
                 const printWindow = window.open('', '_blank');
                 if (printWindow) {
+                    const latestTest = reportData.history.tests[0];
+                    const initialTest = reportData.history.tests[reportData.history.tests.length - 1];
+                    const progressDelta = initialTest ? (initialTest.score - (latestTest?.score || 0)) : 0;
+                    const estimatedSavings = reportData.user.streak * 100000; // Average IDR 100k/day baseline
+
                     printWindow.document.write(`
                         <html>
                             <head>
-                                <title>Recovery Report - ${reportData.user.username}</title>
+                                <title>Official Recovery Report - ${reportData.user.username}</title>
                                 <style>
-                                    body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; }
-                                    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
-                                    .logo { font-size: 24px; font-weight: 800; color: #06b6d4; }
-                                    .title { font-size: 20px; font-weight: bold; text-transform: uppercase; }
-                                    .section { margin-bottom: 30px; }
-                                    .section-title { font-size: 16px; font-weight: bold; border-left: 4px solid #06b6d4; padding-left: 10px; margin-bottom: 15px; text-transform: uppercase; }
-                                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-                                    .stat-card { background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; }
-                                    .stat-value { font-size: 24px; font-weight: 800; color: #06b6d4; }
-                                    .stat-label { font-size: 12px; color: #6b7280; text-transform: uppercase; }
-                                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                                    th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; font-size: 12px; }
-                                    th { background: #f3f4f6; }
-                                    .footer { margin-top: 50px; font-size: 10px; color: #9ca3af; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 20px; }
+                                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+                                    body { font-family: 'Inter', sans-serif; padding: 50px; color: #1f2937; line-height: 1.5; }
+                                    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 4px solid #06b6d4; padding-bottom: 25px; margin-bottom: 40px; }
+                                    .logo-container { display: flex; align-items: center; gap: 15px; }
+                                    .logo-img { height: 60px; width: auto; }
+                                    .logo-text { font-size: 28px; font-weight: 950; letter-spacing: -1.5px; color: #06b6d4; text-transform: uppercase; }
+                                    .report-meta { text-align: right; }
+                                    .report-title { font-size: 24px; font-weight: 900; text-transform: uppercase; color: #111; margin-bottom: 2px; }
+                                    .section { margin-bottom: 40px; page-break-inside: avoid; }
+                                    .section-title { font-size: 14px; font-weight: 900; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; color: #06b6d4; }
+                                    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
+                                    .stat-card { background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #f1f5f9; display: flex; flex-direction: column; justify-content: center; }
+                                    .stat-value { font-size: 32px; font-weight: 900; color: #06b6d4; line-height: 1; }
+                                    .stat-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 5px; }
+                                    .progress-box { background: #06b6d4; color: white; padding: 25px; border-radius: 20px; grid-column: span 2; display: flex; justify-content: space-between; align-items: center; }
+                                    .progress-text { font-size: 14px; font-weight: 700; }
+                                    .progress-percent { font-size: 40px; font-weight: 900; }
+                                    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+                                    th { background: #f1f5f9; text-align: left; padding: 12px; font-weight: 800; text-transform: uppercase; font-size: 10px; color: #475569; }
+                                    td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+                                    .badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+                                    .badge-clean { background: #dcfce7; color: #166534; }
+                                    .badge-relapse { background: #fee2e2; color: #991b1b; }
+                                    .note { font-style: italic; color: #64748b; font-size: 11px; margin-top: 4px; }
+                                    .footer { margin-top: 80px; padding-top: 30px; border-top: 2px solid #f1f5f9; text-align: center; font-size: 10px; color: #94a3b8; }
                                     @media print { .no-print { display: none; } }
                                 </style>
                             </head>
                             <body>
                                 <div class="header">
-                                    <div class="logo">NEWPATH RECOVERY</div>
-                                    <div class="title">Official Program Report</div>
+                                    <div class="logo-container">
+                                        <img src="/logo.png" alt="NewPath Logo" class="logo-img" onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='block'">
+                                        <div id="logoFallback" class="logo-text" style="display:none">NEWPATH RECOVERY</div>
+                                    </div>
+                                    <div class="report-meta">
+                                        <div class="report-title">Program Performance Analysis</div>
+                                        <div style="font-weight: 700; font-size: 12px; color: #64748b;">Generated: ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                                    </div>
                                 </div>
+
                                 <div class="section">
-                                    <div class="section-title">User Profile</div>
+                                    <div class="section-title">Verified User Profile</div>
                                     <div class="grid">
-                                        <div>
-                                            <p><strong>Username:</strong> @${reportData.user.username}</p>
-                                            <p><strong>Email:</strong> ${reportData.user.email}</p>
+                                        <div class="stat-card">
+                                            <div style="font-size: 18px; font-weight: 800;">@${reportData.user.username}</div>
+                                            <div class="stat-label">System Username</div>
                                         </div>
-                                        <div>
-                                            <p><strong>Join Date:</strong> ${new Date(reportData.user.joinDate).toLocaleDateString()}</p>
-                                            <p><strong>Current Level:</strong> Level ${reportData.user.level} (${reportData.user.xp} XP)</p>
+                                        <div class="stat-card">
+                                            <div style="font-size: 18px; font-weight: 800;">${new Date(reportData.user.joinDate).toLocaleDateString()}</div>
+                                            <div class="stat-label">Enrollment Date</div>
                                         </div>
                                     </div>
                                 </div>
+
                                 <div class="section">
-                                    <div class="section-title">Program Statistics (14 Days)</div>
+                                    <div class="section-title">Behavioral Recovery Metrics</div>
                                     <div class="grid">
-                                        <div class="stat-card">
-                                            <div class="stat-value">${reportData.statistics.completionRate}%</div>
-                                            <div class="stat-label">Completion Rate</div>
-                                        </div>
-                                        <div class="stat-card">
-                                            <div class="stat-value">${reportData.statistics.checkInCount}</div>
-                                            <div class="stat-label">Total Check-Ins</div>
-                                        </div>
-                                        <div class="stat-card">
-                                            <div class="stat-value">${reportData.statistics.avgRisk}%</div>
-                                            <div class="stat-label">Average Relapse Risk</div>
+                                        <div class="progress-box">
+                                            <div>
+                                                <div class="progress-text">Assessment Score Improvement</div>
+                                                <div style="font-size: 11px; opacity: 0.8; margin-top: 5px;">Comparison between initial and latest addiction assessment.</div>
+                                            </div>
+                                            <div class="progress-percent">${progressDelta > 0 ? '+' : ''}${progressDelta}%</div>
                                         </div>
                                         <div class="stat-card">
                                             <div class="stat-value">${reportData.user.streak} Hari</div>
-                                            <div class="stat-label">Current Streak</div>
+                                            <div class="stat-label">Consecutive Clean Days</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value" style="color: #166534;">Rp ${(estimatedSavings/1000).toLocaleString()}k</div>
+                                            <div class="stat-label">Estimated Financial Savings</div>
                                         </div>
                                     </div>
                                 </div>
+
                                 <div class="section">
-                                    <div class="section-title">Daily Check-In History</div>
+                                    <div class="section-title">Daily Reflection & Analysis Log</div>
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th>Date</th>
-                                                <th>Did Gamble?</th>
-                                                <th>Urge to Deposit?</th>
-                                                <th>Risk Score</th>
+                                                <th style="width: 15%;">Date</th>
+                                                <th style="width: 15%;">Status</th>
+                                                <th style="width: 15%;">Risk Level</th>
+                                                <th>User Reflection & Observations</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            ${reportData.history.checkIns.map((ci: any) => `
+                                            ${reportData.history.checkIns.length === 0 ? '<tr><td colspan="4" style="text-align:center; padding: 40px; color: #94a3b8;">No check-in data available for the selected period.</td></tr>' : 
+                                              reportData.history.checkIns.map((ci: any) => `
                                                 <tr>
-                                                    <td>${new Date(ci.checkedAt).toLocaleDateString()}</td>
-                                                    <td>${ci.didGamble ? 'YES' : 'NO'}</td>
-                                                    <td>${ci.feltLikeDepositing ? 'YES' : 'NO'}</td>
-                                                    <td style="color: ${ci.riskScore > 0.6 ? '#ef4444' : ci.riskScore > 0.3 ? '#f97316' : '#10b981'}; font-weight: bold;">
+                                                    <td><strong>${new Date(ci.checkedAt).toLocaleDateString('id-ID')}</strong></td>
+                                                    <td><span class="badge ${ci.didGamble ? 'badge-relapse' : 'badge-clean'}">${ci.didGamble ? 'RELAPSE' : 'CLEAN'}</span></td>
+                                                    <td style="font-weight: 800; color: ${ci.riskScore > 0.6 ? '#ef4444' : ci.riskScore > 0.3 ? '#f97316' : '#10b981'};">
                                                         ${Math.round((ci.riskScore || 0) * 100)}%
+                                                    </td>
+                                                    <td>
+                                                        <div style="font-weight: 600;">${ci.didGamble ? 'Gambled' : 'Did not gamble'} • ${ci.feltLikeDepositing ? 'Felt Uges' : 'Stable'}</div>
+                                                        <div class="note">${ci.note || 'No specific notes recorded for this period.'}</div>
                                                     </td>
                                                 </tr>
                                             `).join('')}
                                         </tbody>
                                     </table>
                                 </div>
+
                                 <div class="footer">
-                                    This is an official document generated by the NewPath Recovery Platform. 
-                                    Confidential. &copy; ${new Date().getFullYear()} NewPath Recovery.
+                                    <p>DOC-ID: RECOVERY-AUTO-${reportData.user.username.toUpperCase()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
+                                    <p>Authorized by NewPath Recovery Behavioral Analytics Group. Strictly Confidential.</p>
+                                    <p>&copy; ${new Date().getFullYear()} NewPath Recovery Platform. All rights reserved.</p>
                                 </div>
-                                <button class="no-print" onclick="window.print()" style="position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; bg: #06b6d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Print to PDF</button>
+                                <button class="no-print" onclick="window.print()" style="position: fixed; bottom: 30px; right: 30px; background: #06b6d4; color: white; border: none; padding: 15px 30px; border-radius: 99px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 25px rgba(6, 182, 212, 0.4); text-transform: uppercase; letter-spacing: 1px;">Confirm Print / Download PDF</button>
                             </body>
                         </html>
                     `);
