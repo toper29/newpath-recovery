@@ -67,7 +67,7 @@ export async function POST(request: Request) {
         // Log the activity
         const currentUser = await getCurrentUser();
         if (currentUser) {
-            await prisma.AdminLog.create({
+            await prisma.adminLog.create({
                 data: {
                     adminId: currentUser.userId,
                     adminName: currentUser.email,

@@ -39,7 +39,7 @@ export async function PATCH(
         });
 
         // Log the activity
-        await prisma.AdminLog.create({
+        await prisma.adminLog.create({
             data: {
                 adminId: currentUser.userId,
                 adminName: currentUser.email,
@@ -83,7 +83,7 @@ export async function DELETE(
         await prisma.user.delete({ where: { id } });
 
         // Log the activity
-        await prisma.AdminLog.create({
+        await prisma.adminLog.create({
             data: {
                 adminId: currentUser.userId,
                 adminName: currentUser.email,
