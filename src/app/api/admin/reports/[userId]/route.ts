@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ userId: string }> }
+    context: { params: Promise<{ userId: string }> }
 ) {
     try {
         const currentUser = await getCurrentUser();
@@ -14,7 +14,7 @@ export async function GET(
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const { userId } = await params;
+        const { userId } = await context.params;
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
