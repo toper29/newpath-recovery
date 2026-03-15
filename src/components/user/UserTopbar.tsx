@@ -43,7 +43,6 @@ export default function UserTopbar() {
         if (pathname?.includes("/dashboard/slot-trap")) return "Slot Trap Simulator";
         if (pathname?.includes("/dashboard/reality-call")) return "Emergency Reality Call";
         if (pathname?.includes("/dashboard/addiction-test")) return "Addiction Test";
-        if (pathname?.includes("/dashboard/shame-meter")) return "Shame Meter";
         if (pathname?.includes("/dashboard/deposit-awareness")) return "Deposit Awareness";
         if (pathname?.includes("/dashboard/money-talking")) return "Your Money Talking";
         if (pathname?.includes("/dashboard/recovery-challenge")) return "14-Day Recovery Challenge";

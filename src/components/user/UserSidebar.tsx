@@ -34,7 +34,6 @@ export const userMenus = [
     
     // Group: Self-Assessment
     { name: "Addiction Test", href: "/dashboard/addiction-test", icon: ClipboardCheck },
-    { name: "Shame Meter", href: "/dashboard/shame-meter", icon: Gauge },
     
     // Group: Awareness & Simulators
     { name: "Reality Slot Simulator", href: "/dashboard/reality-simulator", icon: Target },
