@@ -378,7 +378,7 @@ export default function RecoveryChallenge14() {
                         
                         <div className="mt-6 space-y-2">
                             <div className="flex justify-between items-end mb-1">
-                                <span className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">Current Progress: Day {currentCompleted} / 14</span>
+                                <span className="text-[10px] font-black text-accent uppercase tracking-[0.2em]">Completed Tasks: {currentCompleted} / 14</span>
                                 <span className="text-sm font-mono font-bold text-white">{progressPercent}%</span>
                             </div>
                             <div className="h-3 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
@@ -705,7 +705,12 @@ export default function RecoveryChallenge14() {
                              >
                                 Tutup
                              </button>
-                             {selectedDayIdx === nextDay - 1 && canDoNext && (
+                             {CHALLENGE_CONTENT[selectedDayIdx].day <= currentCompleted ? (
+                                <div className="flex-[2] bg-green-500/20 border border-green-500/50 text-green-400 py-5 rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl">
+                                    <CheckCircle2 size={20} />
+                                    Tugas Selesai
+                                </div>
+                             ) : selectedDayIdx === nextDay - 1 && canDoNext && (
                                 <button 
                                     onClick={handleCompleteTask}
                                     disabled={saving}

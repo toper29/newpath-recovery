@@ -43,6 +43,18 @@ export async function POST(request: Request) {
         }
 
         const expectedNextDay = challenges.length + 1;
+        
+        // Idempotency check: If user attempts to complete a day they already finished, return success
+        const alreadyCompleted = challenges.some((c: any) => c.dayCompleted === day);
+        if (alreadyCompleted) {
+            const user = await prisma.user.findUnique({ where: { id: userId }, select: { xp: true, level: true } });
+            return NextResponse.json({ 
+                success: true, 
+                message: `Hari ${day} sudah selesai`,
+                data: { level: user?.level || 1, xp: user?.xp || 0 }
+            });
+        }
+
         if (day !== expectedNextDay) {
             return NextResponse.json({ success: false, error: `Invalid day. Expected Day ${expectedNextDay}` }, { status: 400 });
         }
