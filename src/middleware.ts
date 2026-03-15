@@ -52,13 +52,21 @@ export async function middleware(request: NextRequest) {
     }
 
     // 1.5 Route Protection (Auth & Role Authorization)
-    const protectedRoutes = ['/admin', '/dashboard', '/program', '/progress', '/simulator', '/profile'];
-    const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route));
-
-    if (isProtectedRoute) {
+    const publicPaths = ['/login', '/register', '/api/auth', '/api/articles', '/api/public'];
+    const isPublicPath = publicPaths.some(p => path.startsWith(p));
+    
+    // We only protect non-public paths
+    if (!isPublicPath) {
         const token = request.cookies.get('token')?.value;
 
+        // If it's an API route and no token, return JSON error instead of redirect
         if (!token) {
+            if (path.startsWith('/api')) {
+                return new NextResponse(
+                    JSON.stringify({ success: false, error: 'Unauthorized: No token provided' }),
+                    { status: 401, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
             return NextResponse.redirect(new URL('/login', request.url));
         }
 
@@ -70,33 +78,39 @@ export async function middleware(request: NextRequest) {
             const { payload } = await jwtVerify(token, secret);
             const userRole = payload.role as string;
 
-            // Role-based access control
-            if (path.startsWith('/admin')) {
+            // Role-based access control for /admin and /api/admin
+            if (path.startsWith('/admin') || path.startsWith('/api/admin')) {
                 if (userRole !== 'SUPERADMIN' && userRole !== 'ADMIN') {
-                    // Non-admin trying to access admin area -> redirect to home/dashboard
+                    if (path.startsWith('/api')) {
+                        return new NextResponse(
+                            JSON.stringify({ success: false, error: 'Forbidden: Admin access required' }),
+                            { status: 403, headers: { 'Content-Type': 'application/json' } }
+                        );
+                    }
                     return NextResponse.redirect(new URL('/', request.url));
                 }
-            } else {
-                // For other protected routes (dashboard, simulator, etc.)
-                // Any logged in user (USER, ADMIN, SUPERADMIN) can access
-                // unless we want to restrict specifically to USER role for some reason.
-                // The prompt says "User: hanya boleh akses khusus user". 
-                // Usually admins can see user dashboards too, but let's stick to the prompt.
-                // If the user role is empty or invalid, redirect.
-                if (!userRole) {
-                    return NextResponse.redirect(new URL('/login', request.url));
+            }
+            
+            // For other protected routes, userRole must exist
+            if (!userRole) {
+                 if (path.startsWith('/api')) {
+                    return new NextResponse(
+                        JSON.stringify({ success: false, error: 'Unauthorized: Invalid role' }),
+                        { status: 401, headers: { 'Content-Type': 'application/json' } }
+                    );
                 }
+                return NextResponse.redirect(new URL('/login', request.url));
             }
 
         } catch (error) {
-            // Token is invalid or expired
+            if (path.startsWith('/api')) {
+                return new NextResponse(
+                    JSON.stringify({ success: false, error: 'Unauthorized: Invalid or expired token' }),
+                    { status: 401, headers: { 'Content-Type': 'application/json' } }
+                );
+            }
             return NextResponse.redirect(new URL('/login', request.url));
         }
-    }
-
-    // Pass through static assets
-    if (path.startsWith('/_next') || path.match(/\.(png|jpg|jpeg|gif|svg|ico)$/)) {
-        return NextResponse.next();
     }
 
     // 2. Global Rate Limiter: 100 req / minute / IP
@@ -116,7 +130,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // 3. Specific Route Rate Limiters (Login & Register APIs/Routes)
-    if (path === '/login' && request.method === 'POST') { // Assuming POST acts as API if handled server-side, or applying to visits
+    if (path === '/login' && request.method === 'POST') {
         let loginInfo = ipLoginLimits.get(ip);
         if (!loginInfo || now - loginInfo.lastReset > MINUTE) {
             loginInfo = { count: 1, lastReset: now };
@@ -136,8 +150,6 @@ export async function middleware(request: NextRequest) {
         const bfInfo = bruteForceTracker.get(ip);
         if (bfInfo && bfInfo.failedLoginAttempts >= 5) {
             if (now < bfInfo.blockExpiresAt) {
-                // progressive delay, return 429 immediately if blocked
-                // Or require captcha via custom header
                 const response = NextResponse.next();
                 response.headers.set('X-Requires-Captcha', 'true');
                 response.headers.set('X-BF-Delay-Seconds', String(Math.ceil((bfInfo.blockExpiresAt - now) / 1000)));
@@ -177,11 +189,10 @@ export const config = {
     matcher: [
         /*
          * Match all request paths except for the ones starting with:
-         * - api (API routes)
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
          */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        '/((?!_next/static|_next/image|favicon.ico).*)',
     ],
 };
