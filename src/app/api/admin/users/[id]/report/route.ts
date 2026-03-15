@@ -22,7 +22,11 @@ export async function GET(
             include: {
                 dailyCheckIns: { orderBy: { checkedAt: "asc" } },
                 addictionTests: { orderBy: { createdAt: "desc" } },
-                gamblingReports: { orderBy: { createdAt: "desc" } }
+                gamblingReports: { orderBy: { createdAt: "desc" } },
+                achievements: { 
+                    where: { isUnlocked: true },
+                    include: { achievement: true }
+                }
             }
         });
 
@@ -63,7 +67,13 @@ export async function GET(
                 history: {
                     checkIns: user.dailyCheckIns,
                     tests: user.addictionTests,
-                    gamblingReports: user.gamblingReports
+                    gamblingReports: user.gamblingReports,
+                    achievements: (user.achievements as any[]).map(ua => ({
+                        title: ua.achievement.title,
+                        description: ua.achievement.description,
+                        unlockedAt: ua.unlockedAt,
+                        iconName: ua.achievement.iconName
+                    }))
                 }
             }
         });

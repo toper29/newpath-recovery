@@ -53,7 +53,6 @@ export default function UserManagementPage() {
                     const latestTest = reportData.history.tests[0];
                     const initialTest = reportData.history.tests[reportData.history.tests.length - 1];
                     const progressDelta = initialTest ? (initialTest.score - (latestTest?.score || 0)) : 0;
-                    const estimatedSavings = reportData.user.streak * 100000; // Average IDR 100k/day baseline
 
                     printWindow.document.write(`
                         <html>
@@ -83,6 +82,7 @@ export default function UserManagementPage() {
                                     .badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
                                     .badge-clean { background: #dcfce7; color: #166534; }
                                     .badge-relapse { background: #fee2e2; color: #991b1b; }
+                                    .achievement-badge { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; padding: 6px 12px; border-radius: 12px; display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 11px; margin-right: 10px; margin-bottom: 10px; }
                                     .note { font-style: italic; color: #64748b; font-size: 11px; margin-top: 4px; }
                                     .footer { margin-top: 80px; padding-top: 30px; border-top: 2px solid #f1f5f9; text-align: center; font-size: 10px; color: #94a3b8; }
                                     @media print { .no-print { display: none; } }
@@ -129,9 +129,26 @@ export default function UserManagementPage() {
                                             <div class="stat-label">Consecutive Clean Days</div>
                                         </div>
                                         <div class="stat-card">
-                                            <div class="stat-value" style="color: #166534;">Rp ${(estimatedSavings/1000).toLocaleString()}k</div>
-                                            <div class="stat-label">Estimated Financial Savings</div>
+                                            <div class="stat-value">${reportData.statistics.checkInCount}</div>
+                                            <div class="stat-label">Completed Daily Check-ins</div>
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div class="section">
+                                    <div class="section-title">Verified Recovery Achievements</div>
+                                    <div style="display: flex; flex-wrap: wrap;">
+                                        ${reportData.history.achievements.length === 0 
+                                            ? '<div style="color: #64748b; font-style: italic;">No achievements unlocked yet. Continuing participation is encouraged.</div>' 
+                                            : reportData.history.achievements.map((ach: any) => `
+                                                <div class="achievement-badge">
+                                                    <span style="font-size: 16px;">🏆</span>
+                                                    <div>
+                                                        <div>${ach.title}</div>
+                                                        <div style="font-size: 8px; font-weight: 600; text-transform: none; opacity: 0.7;">${ach.description}</div>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
                                     </div>
                                 </div>
 
