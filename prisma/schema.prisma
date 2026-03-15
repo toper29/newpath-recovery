@@ -116,6 +116,7 @@ model DailyCheckIn {
   didGamble          Boolean
   feltLikeDepositing Boolean
   openedGamblingSite Boolean
+  riskScore          Float?
   note               String?
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

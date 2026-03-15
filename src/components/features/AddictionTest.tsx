@@ -56,10 +56,10 @@ export default function AddictionTest() {
     };
 
     const getResultInfo = (score: number) => {
-        if (score === 0) return { category: "Aman", req: "Pertahankan", color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/30" };
-        if (score <= 40) return { category: "Low Risk", req: "Waspada", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/30" };
-        if (score <= 60) return { category: "Medium Risk", req: "Butuh Intervensi", color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/30" };
-        return { category: "High Risk", req: "Segera Berhenti total", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/30" };
+        if (score === 0) return { category: "Sangat Aman", req: "Pertahankan gaya hidup sehat Anda", color: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/30" };
+        if (score <= 30) return { category: "Low Risk", req: "Mulai batasi akses ke konten judi", color: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/30" };
+        if (score <= 70) return { category: "Moderate Risk", req: "Anda butuh intervensi dan pendampingan", color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/30" };
+        return { category: "High Risk", req: "Segera berhenti total dan cari bantuan profesional", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/30" };
     };
 
     return (
@@ -123,7 +123,7 @@ export default function AddictionTest() {
                             {getResultInfo(calculateScore()).category}
                         </h3>
                         <p className="text-foreground/80 font-medium mb-4">
-                            Tindakan yang disarankan: <span className="font-bold">{getResultInfo(calculateScore()).req}</span>
+                            Hasil test menunjukkan tingkat ketergantungan: <span className="font-bold">{getResultInfo(calculateScore()).req}</span>
                         </p>
                     </div>
 

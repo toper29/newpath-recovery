@@ -62,9 +62,24 @@ export async function POST(request: Request) {
 
         if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
 
+        // Calculate Risk Score
+        let riskScore = 0;
+        if (didGamble) {
+            riskScore = 1.0;
+        } else {
+            if (feltLikeDepositing) riskScore += 0.33;
+            if (openedGamblingSite) riskScore += 0.33;
+        }
+
         // Save check-in
         await (prisma as any).dailyCheckIn.create({
-            data: { userId, didGamble, feltLikeDepositing, openedGamblingSite }
+            data: { 
+                userId, 
+                didGamble, 
+                feltLikeDepositing, 
+                openedGamblingSite,
+                riskScore
+            }
         });
 
         // Calculate new streak

@@ -181,7 +181,20 @@ export default function RecoveryChallenge14() {
         longestStreak: number;
         hasCheckedInToday: boolean;
         xp: number;
-    }>({ cleanDays: 0, canDoNextTask: true, streak: 0, longestStreak: 0, hasCheckedInToday: false, xp: 0 });
+        currentDay: number;
+        completionRate: number;
+        avgRisk: number;
+    }>({ 
+        cleanDays: 0, 
+        canDoNextTask: true, 
+        streak: 0, 
+        longestStreak: 0, 
+        hasCheckedInToday: false, 
+        xp: 0,
+        currentDay: 1,
+        completionRate: 0,
+        avgRisk: 0
+    });
 
     // Anti-relapse check-in state
     const [showCheckIn, setShowCheckIn] = useState(false);
@@ -196,18 +209,27 @@ export default function RecoveryChallenge14() {
 
     const fetchProgress = async () => {
         try {
-            const res = await fetch("/api/user/me");
-            const json = await res.json();
-            if (json.success && json.data) {
+            const [meRes, progRes] = await Promise.all([
+                fetch("/api/user/me"),
+                fetch("/api/user/progress")
+            ]);
+            
+            const meJson = await meRes.json();
+            const progJson = await progRes.json();
+
+            if (meJson.success && meJson.data && progJson.success) {
                 setUserProgress({
-                    cleanDays: json.data.cleanDays,
-                    canDoNextTask: json.data.canDoNextTask,
-                    streak: json.data.streak ?? 0,
-                    longestStreak: json.data.longestStreak ?? 0,
-                    hasCheckedInToday: json.data.hasCheckedInToday ?? false,
-                    xp: json.data.xp ?? 0,
+                    cleanDays: meJson.data.cleanDays,
+                    canDoNextTask: meJson.data.canDoNextTask,
+                    streak: meJson.data.streak ?? 0,
+                    longestStreak: meJson.data.longestStreak ?? 0,
+                    hasCheckedInToday: meJson.data.hasCheckedInToday ?? false,
+                    xp: meJson.data.xp ?? 0,
+                    currentDay: progJson.data.currentDay,
+                    completionRate: progJson.data.completionRate,
+                    avgRisk: progJson.data.avgRisk
                 });
-                setCheckInDone(json.data.hasCheckedInToday ?? false);
+                setCheckInDone(meJson.data.hasCheckedInToday ?? false);
             }
         } catch (err) {
             console.error("Failed to load progress", err);
@@ -223,7 +245,7 @@ export default function RecoveryChallenge14() {
     const currentCompleted = userProgress.cleanDays + (taskDone ? 1 : 0);
     const canDoNext = taskDone ? false : userProgress.canDoNextTask;
     const nextDay = Math.min(userProgress.cleanDays + 1, 14);
-    const progressPercent = Math.round((currentCompleted / 14) * 100);
+    const progressPercent = userProgress.completionRate;
 
     // Logic for 10 Stages over 14 Days
     const getRecoveryStage = (days: number) => {
@@ -521,8 +543,21 @@ export default function RecoveryChallenge14() {
                         );
                     })}
                 </div>
+                
+                {/* Risk Indicator */}
+                <div className={`mt-4 p-4 rounded-2xl flex items-center justify-between border ${userProgress.avgRisk > 60 ? 'bg-red-500/10 border-red-500/30 text-red-400' : userProgress.avgRisk > 30 ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-green-500/10 border-green-500/30 text-green-400'}`}>
+                    <div className="flex items-center gap-3">
+                        <Activity size={18} />
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-wider">Average Relapse Risk</p>
+                            <p className="text-[10px] opacity-70">Berdasarkan check-in {userProgress.cleanDays} hari terakhir</p>
+                        </div>
+                    </div>
+                    <div className="text-xl font-black">{userProgress.avgRisk}%</div>
+                </div>
+
                 {/* Check-in status */}
-                <div className={`mt-4 p-3 rounded-xl flex items-center gap-3 border text-sm font-semibold ${checkInDone ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-orange-500/10 border-orange-500/30 text-orange-400'}`}>
+                <div className={`mt-3 p-3 rounded-xl flex items-center gap-3 border text-sm font-semibold ${checkInDone ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-orange-500/10 border-orange-500/30 text-orange-400'}`}>
                     {checkInDone ? <ShieldCheck size={18} /> : <AlertTriangle size={18} />}
                     {checkInDone
                         ? `Check-in hari ini selesai! Streak: ${userProgress.streak} hari`

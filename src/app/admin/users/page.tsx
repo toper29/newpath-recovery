@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Filter, AlertTriangle, Users, MoreVertical, Eye, Ban, Trash2, KeyRound, Loader2, CheckCircle } from "lucide-react";
+import { Search, Filter, AlertTriangle, Users, MoreVertical, Eye, Ban, Trash2, KeyRound, Loader2, CheckCircle, FileText, Download } from "lucide-react";
 
 interface UserData {
     id: string;
@@ -40,6 +40,119 @@ export default function UserManagementPage() {
 
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
+    const handleDownloadReport = async (userId: string) => {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/admin/reports/${userId}`);
+            const json = await res.json();
+            if (json.success) {
+                // Open report in new window for printing
+                const reportData = json.data;
+                const printWindow = window.open('', '_blank');
+                if (printWindow) {
+                    printWindow.document.write(`
+                        <html>
+                            <head>
+                                <title>Recovery Report - ${reportData.user.username}</title>
+                                <style>
+                                    body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; }
+                                    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+                                    .logo { font-size: 24px; font-weight: 800; color: #06b6d4; }
+                                    .title { font-size: 20px; font-weight: bold; text-transform: uppercase; }
+                                    .section { margin-bottom: 30px; }
+                                    .section-title { font-size: 16px; font-weight: bold; border-left: 4px solid #06b6d4; padding-left: 10px; margin-bottom: 15px; text-transform: uppercase; }
+                                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                                    .stat-card { background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; }
+                                    .stat-value { font-size: 24px; font-weight: 800; color: #06b6d4; }
+                                    .stat-label { font-size: 12px; color: #6b7280; text-transform: uppercase; }
+                                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                                    th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; font-size: 12px; }
+                                    th { background: #f3f4f6; }
+                                    .footer { margin-top: 50px; font-size: 10px; color: #9ca3af; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 20px; }
+                                    @media print { .no-print { display: none; } }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="header">
+                                    <div class="logo">NEWPATH RECOVERY</div>
+                                    <div class="title">Official Program Report</div>
+                                </div>
+                                <div class="section">
+                                    <div class="section-title">User Profile</div>
+                                    <div class="grid">
+                                        <div>
+                                            <p><strong>Username:</strong> @${reportData.user.username}</p>
+                                            <p><strong>Email:</strong> ${reportData.user.email}</p>
+                                        </div>
+                                        <div>
+                                            <p><strong>Join Date:</strong> ${new Date(reportData.user.joinDate).toLocaleDateString()}</p>
+                                            <p><strong>Current Level:</strong> Level ${reportData.user.level} (${reportData.user.xp} XP)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section">
+                                    <div class="section-title">Program Statistics (14 Days)</div>
+                                    <div class="grid">
+                                        <div class="stat-card">
+                                            <div class="stat-value">${reportData.statistics.completionRate}%</div>
+                                            <div class="stat-label">Completion Rate</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value">${reportData.statistics.checkInCount}</div>
+                                            <div class="stat-label">Total Check-Ins</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value">${reportData.statistics.avgRisk}%</div>
+                                            <div class="stat-label">Average Relapse Risk</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value">${reportData.user.streak} Hari</div>
+                                            <div class="stat-label">Current Streak</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section">
+                                    <div class="section-title">Daily Check-In History</div>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Did Gamble?</th>
+                                                <th>Urge to Deposit?</th>
+                                                <th>Risk Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${reportData.history.checkIns.map((ci: any) => `
+                                                <tr>
+                                                    <td>${new Date(ci.checkedAt).toLocaleDateString()}</td>
+                                                    <td>${ci.didGamble ? 'YES' : 'NO'}</td>
+                                                    <td>${ci.feltLikeDepositing ? 'YES' : 'NO'}</td>
+                                                    <td style="color: ${ci.riskScore > 0.6 ? '#ef4444' : ci.riskScore > 0.3 ? '#f97316' : '#10b981'}; font-weight: bold;">
+                                                        ${Math.round((ci.riskScore || 0) * 100)}%
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="footer">
+                                    This is an official document generated by the NewPath Recovery Platform. 
+                                    Confidential. &copy; ${new Date().getFullYear()} NewPath Recovery.
+                                </div>
+                                <button class="no-print" onclick="window.print()" style="position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; bg: #06b6d4; color: white; border: none; border-radius: 5px; cursor: pointer;">Print to PDF</button>
+                            </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                }
+            }
+        } catch (err) {
+            console.error("Failed to generate report", err);
+        } finally {
+            setLoading(false);
+        }
+    };
     const handleAction = async (userId: string, action: string) => {
         let confirmText = `Apakah Anda yakin ingin melakukan aksi ${action} pada pengguna ini?`;
         if (action === "suspend") confirmText = "Apakah Anda yakin ingin MENANGGUHKAN (suspend) pengguna ini? Mereka tidak akan bisa login.";
@@ -199,6 +312,9 @@ export default function UserManagementPage() {
                                             </button>
                                             <div className="absolute right-0 mt-2 w-48 bg-[#112422] border border-primary/20 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                                                 <div className="py-1 flex flex-col">
+                                                    <button onClick={() => handleDownloadReport(user.id)} className="w-full flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-primary/20 transition-colors text-foreground">
+                                                        <Download size={14} className="text-accent" /> Download Report
+                                                    </button>
                                                     <button onClick={() => setSelectedUser(user)} className="w-full flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-primary/20 transition-colors text-foreground">
                                                         <Eye size={14} className="text-accent" /> View Details
                                                     </button>
