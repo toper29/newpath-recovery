@@ -1,34 +1,27 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
-
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser || currentUser.role !== "SUPERADMIN") {
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const limit = parseInt(searchParams.get("limit") || "50");
+        const action = searchParams.get("action");
+
         const logs = await prisma.adminLog.findMany({
+            where: action ? { action } : {},
             orderBy: { createdAt: "desc" },
-            take: 50
+            take: limit
         });
 
-        const formatted = logs.map((log: any) => ({
-            ...log,
-            date: new Date(log.createdAt).toLocaleString('en-US', { 
-                month: 'short', 
-                day: '2-digit', 
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            })
-        }));
-
-        return NextResponse.json({ success: true, data: formatted });
+        return NextResponse.json({ success: true, logs });
     } catch (error: any) {
-        console.error("Admins Logs API GET Error Details:", {
-            message: error.message,
-            stack: error.stack,
-            code: error.code,
-            meta: error.meta
-        });
-        return NextResponse.json({ success: false, error: "Failed to fetch admin logs", details: error.message }, { status: 500 });
+        console.error("Fetch Logs Error:", error);
+        return NextResponse.json({ success: false, error: "Gagal mengambil log sistem" }, { status: 500 });
     }
 }

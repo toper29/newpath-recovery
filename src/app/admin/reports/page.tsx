@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ShieldAlert, Globe, Trash2, Loader2, AlertTriangle, ExternalLink, Calendar, Users, BarChart3, Filter } from "lucide-react";
+import { Search, ShieldAlert, Globe, Trash2, Loader2, AlertTriangle, ExternalLink, Calendar, Users, BarChart3, Filter, Download } from "lucide-react";
 
 interface Report {
     id: string;
@@ -86,6 +86,129 @@ export default function AdminReportsPage() {
                     </h1>
                     <p className="text-white/40 text-sm mt-1 uppercase tracking-widest text-[10px] font-black">Pantau dan kelola laporan situs dari pengguna.</p>
                 </div>
+                <button 
+                    onClick={async () => {
+                        const res = await fetch("/api/admin/gambling-sites/report");
+                        const json = await res.json();
+                        if (json.success) {
+                            const data = json.data;
+                            const printWindow = window.open('', '_blank');
+                            if (printWindow) {
+                                printWindow.document.write(`
+                                    <html>
+                                        <head>
+                                            <title>Official Gambling Site Report - NewPath Recovery</title>
+                                            <style>
+                                                body { font-family: 'Inter', sans-serif; padding: 50px; color: #111; line-height: 1.6; }
+                                                .header { border-bottom: 3px solid #000; padding-bottom: 20px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+                                                .logo-area { display: flex; align-items: center; gap: 15px; }
+                                                .logo-text { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+                                                .report-info { text-align: right; }
+                                                .report-title { font-size: 22px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
+                                                .section { margin-bottom: 40px; }
+                                                .section-title { font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+                                                .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+                                                .stat-box { border: 1px solid #eee; padding: 20px; border-radius: 12px; }
+                                                .stat-label { font-size: 10px; font-weight: 700; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+                                                .stat-value { font-size: 24px; font-weight: 800; }
+                                                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                                                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 12px; }
+                                                th { background: #f8f9fa; font-weight: 800; text-transform: uppercase; font-size: 10px; }
+                                                .domain-pill { padding: 4px 8px; background: #eee; border-radius: 6px; font-family: monospace; }
+                                                .footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid #eee; font-size: 10px; color: #999; display: flex; justify-content: space-between; }
+                                            </style>
+                                        </head>
+                                        <body>
+                                            <div class="header">
+                                                <div class="logo-area">
+                                                    <div class="logo-text">NEWPATH RECOVERY</div>
+                                                </div>
+                                                <div class="report-info">
+                                                    <div class="report-title">Gambling Site Monitoring Report</div>
+                                                    <div style="font-size: 10px; font-weight: 600;">DOC-ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()} | ${new Date().toLocaleDateString()}</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="section">
+                                                <div class="section-title">Summary Statistics</div>
+                                                <div class="summary-grid">
+                                                    <div class="stat-box">
+                                                        <div class="stat-label">Total Reports Received</div>
+                                                        <div class="stat-value">${data.summary.totalReports}</div>
+                                                    </div>
+                                                    <div class="stat-box">
+                                                        <div class="stat-label">Identified Distinct Sites</div>
+                                                        <div class="stat-value">${data.reports.length}</div>
+                                                    </div>
+                                                    <div class="stat-box">
+                                                        <div class="stat-label">User Engagement Rate</div>
+                                                        <div class="stat-value">${Math.round((data.summary.totalReports / 14) * 100)}%</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="section">
+                                                <div class="section-title">Top 5 Reported Domains</div>
+                                                <table>
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Domain Name</th>
+                                                            <th>Frequency</th>
+                                                            <th>Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        ${data.summary.topDomains.map(([domain, count]: any) => `
+                                                            <tr>
+                                                                <td class="domain-pill">${domain}</td>
+                                                                <td><strong>${count}</strong> times</td>
+                                                                <td><span style="color: red; font-weight: bold;">[MONITORED]</span></td>
+                                                            </tr>
+                                                        `).join('')}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="section">
+                                                <div class="section-title">Detailed Submission Log</div>
+                                                <table>
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Date</th>
+                                                            <th>Site Name</th>
+                                                            <th>URL</th>
+                                                            <th>Reporter</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        ${data.reports.slice(0, 20).map((r: any) => `
+                                                            <tr>
+                                                                <td>${new Date(r.createdAt).toLocaleDateString()}</td>
+                                                                <td><strong>${r.siteName}</strong></td>
+                                                                <td style="color: #666; font-size: 10px;">${r.siteLink}</td>
+                                                                <td>@${r.user?.username || 'Anonymous'}</td>
+                                                            </tr>
+                                                        `).join('')}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="footer">
+                                                <div>&copy; 2025 NewPath Recovery Behavioral Analytics</div>
+                                                <div>CLASSIFIED: INTERNAL USE ONLY</div>
+                                            </div>
+                                            <script>window.print();</script>
+                                        </body>
+                                    </html>
+                                `);
+                                printWindow.document.close();
+                            }
+                        }
+                    }}
+                    className="flex items-center gap-2 px-6 py-3 bg-white text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-red-500 transition-all shadow-xl group"
+                >
+                    <Download size={16} className="group-hover:animate-bounce" /> Download Official Site Report
+                </button>
             </div>
 
             {/* Stats Cards */}

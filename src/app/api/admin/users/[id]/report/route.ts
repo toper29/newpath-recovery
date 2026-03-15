@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { logAdminActivity } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -19,14 +20,9 @@ export async function GET(
         const user = await prisma.user.findUnique({
             where: { id },
             include: {
-                dailyCheckIns: {
-                    orderBy: { checkedAt: "asc" },
-                    take: 30
-                },
-                addictionTests: {
-                    orderBy: { createdAt: "desc" },
-                    take: 5
-                }
+                dailyCheckIns: { orderBy: { checkedAt: "asc" }, take: 30 },
+                addictionTests: { orderBy: { createdAt: "desc" }, take: 10 },
+                gamblingReports: { orderBy: { createdAt: "desc" } }
             }
         });
 
@@ -34,10 +30,18 @@ export async function GET(
             return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
         }
 
-        // Calculate statistics
+        // Real-time Calculation
         const checkInCount = user.dailyCheckIns.length;
         const totalRisk = user.dailyCheckIns.reduce((sum, ci) => sum + (ci.riskScore || 0), 0);
         const avgRisk = checkInCount > 0 ? (totalRisk / checkInCount) * 100 : 0;
+        const cleanDays = user.dailyCheckIns.filter(ci => !ci.didGamble).length;
+
+        // Log the activity
+        await logAdminActivity({
+            action: "DOWNLOAD_USER_REPORT",
+            target: user.username,
+            details: { userId: user.id }
+        });
 
         return NextResponse.json({
             success: true,
@@ -52,12 +56,14 @@ export async function GET(
                 },
                 statistics: {
                     checkInCount,
+                    cleanDays,
                     avgRisk: Math.round(avgRisk),
                     completionRate: Math.min(Math.round((checkInCount / 14) * 100), 100)
                 },
                 history: {
                     checkIns: user.dailyCheckIns,
-                    tests: user.addictionTests
+                    tests: user.addictionTests,
+                    gamblingReports: user.gamblingReports
                 }
             }
         });

@@ -15,8 +15,31 @@ export default function AddictionTest() {
     const [answers, setAnswers] = useState<Record<number, boolean>>({});
     const [showResult, setShowResult] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [lastTestDate, setLastTestDate] = useState<Date | null>(null);
+    const [canTest, setCanTest] = useState(true);
 
     useEffect(() => {
+        const checkLastTest = async () => {
+            try {
+                const res = await fetch("/api/user/me");
+                const json = await res.json();
+                if (json.success && json.data.addictionTests?.length > 0) {
+                    const lastDate = new Date(json.data.addictionTests[0].createdAt);
+                    setLastTestDate(lastDate);
+                    
+                    const now = new Date();
+                    const diffDays = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays < 14) {
+                        setCanTest(false);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to check last test", err);
+            }
+        };
+        checkLastTest();
+
         fetch("/api/user/feature-usage", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -43,7 +66,7 @@ export default function AddictionTest() {
                     body: JSON.stringify({
                         gameName: "Addiction Test",
                         score: calculateScore(),
-                        xpEarned: 50 // 50 XP for completing the test
+                        xpEarned: 50
                     })
                 });
             } catch (err) {
@@ -61,6 +84,29 @@ export default function AddictionTest() {
         if (score <= 70) return { category: "Moderate Risk", req: "Anda butuh intervensi dan pendampingan", color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/30" };
         return { category: "High Risk", req: "Segera berhenti total dan cari bantuan profesional", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/30" };
     };
+
+    if (!canTest && !showResult) {
+        return (
+            <div className="bg-[#0a1120] border border-white/10 rounded-2xl p-8 text-center animate-in fade-in duration-500">
+                <div className="w-16 h-16 bg-orange-500/20 text-orange-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <ClipboardCheck size={32} />
+                </div>
+                <h2 className="text-xl font-black text-white uppercase italic mb-2">Evaluasi Belum Tersedia</h2>
+                <p className="text-sm text-white/50 mb-6 max-w-sm mx-auto">
+                    Anda baru saja melakukan evaluasi pada <span className="text-white font-bold">{lastTestDate?.toLocaleDateString()}</span>. 
+                    Evaluasi ulang dapat dilakukan setiap 14 hari untuk melihat perkembangan pemulihan Anda.
+                </p>
+                <div className="p-4 bg-white/5 rounded-xl border border-white/5 mb-6 text-left">
+                    <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-3">Mengapa harus menunggu 14 hari?</h4>
+                    <ul className="text-[11px] text-white/40 space-y-2">
+                        <li>• Memberikan waktu bagi otak untuk melakukan reset dopamin.</li>
+                        <li>• Agar perubahan perilaku benar-benar terukur secara psikologis.</li>
+                        <li>• Menghindari bias jawaban "keinginan sesaat".</li>
+                    </ul>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-background border border-primary/20 rounded-2xl p-6 shadow-lg">

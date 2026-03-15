@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Bell, Settings, Menu, X } from "lucide-react";
 import { useSidebar } from "../layout/SidebarContext";
+import NotificationBell from "../ui/NotificationBell";
 
 export default function AdminTopbar() {
     const pathname = usePathname();
@@ -48,10 +49,7 @@ export default function AdminTopbar() {
                 </div>
 
                 <div className="flex items-center gap-3 md:gap-4">
-                    <button className="relative text-foreground/60 hover:text-foreground transition-colors">
-                        <Bell size={20} />
-                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-background"></span>
-                    </button>
+                    <NotificationBell />
                     <button className="text-foreground/60 hover:text-foreground transition-colors hidden sm:block">
                         <Settings size={20} />
                     </button>

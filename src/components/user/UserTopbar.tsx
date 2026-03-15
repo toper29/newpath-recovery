@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Trophy, ShieldAlert, Menu, X, BrainCircuit } from "lucide-react";
 import { useSidebar } from "../layout/SidebarContext";
+import NotificationBell from "../ui/NotificationBell";
 
 export default function UserTopbar() {
     const pathname = usePathname();
@@ -79,9 +80,7 @@ export default function UserTopbar() {
                 </div>
 
                 <div className="flex items-center gap-2 md:gap-4">
-                    <button className="relative text-foreground/60 hover:text-foreground transition-colors hidden sm:block">
-                        <Bell size={20} />
-                    </button>
+                    <NotificationBell />
                     <button className="flex items-center gap-2 px-3 md:px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-500 font-bold rounded-xl transition-all text-[10px] sm:text-xs">
                         <ShieldAlert size={16} /> <span className="hidden sm:inline">Panic Button</span>
                     </button>
