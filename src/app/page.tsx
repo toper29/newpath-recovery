@@ -22,6 +22,7 @@ export default function Home() {
     fetch('/api/landing-page')
       .then(res => res.json())
       .then(json => {
+        console.log('Landing Page API Response:', json);
         if (json.success) setContent(json.data);
       });
 
