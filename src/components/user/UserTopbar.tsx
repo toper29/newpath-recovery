@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Trophy, ShieldAlert, Menu, X, BrainCircuit } from "lucide-react";
-import { userMenus } from "./UserSidebar";
+import { useSidebar } from "../layout/SidebarContext";
 
 export default function UserTopbar() {
     const pathname = usePathname();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { toggle, isOpen } = useSidebar();
     const [userData, setUserData] = useState({ xp: 0, level: 1, cleanDays: 0, loading: true });
 
     useEffect(() => {
@@ -56,10 +56,10 @@ export default function UserTopbar() {
         <header className="h-20 px-4 md:px-8 flex items-center justify-between border-b border-primary/10 bg-background/90 backdrop-blur-md sticky top-0 z-50 w-full relative">
             <div className="flex items-center gap-3">
                 <button 
-                    className="md:hidden text-foreground hover:text-accent transition-colors"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="md:hidden text-foreground hover:text-accent transition-colors p-2"
+                    onClick={toggle}
                 >
-                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    {isOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
                 <h1 className="text-xl md:text-xl font-extrabold text-foreground tracking-tight truncate max-w-[200px] md:max-w-none">{getPageTitle()}</h1>
             </div>
@@ -87,47 +87,6 @@ export default function UserTopbar() {
                     </button>
                 </div>
             </div>
-
-            {/* Mobile Navigation Overlay */}
-            {isMobileMenuOpen && (
-                <div className="fixed inset-0 top-20 bg-background/95 backdrop-blur-xl z-[90] md:hidden animate-in fade-in slide-in-from-top-4 duration-300 overflow-y-auto">
-                    <div className="p-6 pb-20">
-                        <div className="mb-6 px-4">
-                            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-4">Navigasi Dashboard</p>
-                            <div className="h-px bg-white/5 w-full" />
-                        </div>
-                        <nav className="flex flex-col gap-2">
-                            {userMenus.map((menu) => {
-                                const isActive = pathname === menu.href;
-                                return (
-                                    <Link
-                                        key={menu.name}
-                                        href={menu.href}
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className={`flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-black transition-all uppercase tracking-tight ${isActive
-                                            ? "bg-primary/30 text-accent border border-primary/50 shadow-[0_0_20px_rgba(56,189,248,0.1)]"
-                                            : "text-white/40 hover:text-white hover:bg-white/5"
-                                            }`}
-                                    >
-                                        <menu.icon size={20} className={isActive ? "text-accent" : "text-white/20"} />
-                                        {menu.name}
-                                    </Link>
-                                );
-                            })}
-                        </nav>
-                        
-                        <div className="mt-8 px-4">
-                            <Link 
-                                href="/" 
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className="flex items-center gap-3 text-white/30 text-xs font-bold hover:text-red-400 transition-colors"
-                            >
-                                <X size={16} /> Keluar Aplikasi
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            )}
         </header>
     );
 }

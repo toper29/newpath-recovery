@@ -52,7 +52,10 @@ export async function middleware(request: NextRequest) {
     }
 
     // 1.5 Route Protection (Auth & Role Authorization)
-    if (path.startsWith('/admin') || path.startsWith('/dashboard')) {
+    const protectedRoutes = ['/admin', '/dashboard', '/program', '/progress', '/simulator', '/profile'];
+    const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route));
+
+    if (isProtectedRoute) {
         const token = request.cookies.get('token')?.value;
 
         if (!token) {
@@ -70,12 +73,19 @@ export async function middleware(request: NextRequest) {
             // Role-based access control
             if (path.startsWith('/admin')) {
                 if (userRole !== 'SUPERADMIN' && userRole !== 'ADMIN') {
-                    // Users shouldn't access admin
-                    return NextResponse.redirect(new URL('/dashboard', request.url));
+                    // Non-admin trying to access admin area -> redirect to home/dashboard
+                    return NextResponse.redirect(new URL('/', request.url));
                 }
-            } else if (path.startsWith('/dashboard')) {
-                // Admin navigating to /dashboard is fine, or we could redirect them to /admin
-                // But definitely require being logged in (which is handled above).
+            } else {
+                // For other protected routes (dashboard, simulator, etc.)
+                // Any logged in user (USER, ADMIN, SUPERADMIN) can access
+                // unless we want to restrict specifically to USER role for some reason.
+                // The prompt says "User: hanya boleh akses khusus user". 
+                // Usually admins can see user dashboards too, but let's stick to the prompt.
+                // If the user role is empty or invalid, redirect.
+                if (!userRole) {
+                    return NextResponse.redirect(new URL('/login', request.url));
+                }
             }
 
         } catch (error) {
