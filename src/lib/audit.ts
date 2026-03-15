@@ -20,7 +20,7 @@ export async function logAdminActivity(params: AuditLogParams) {
         const userAgent = headerList.get("user-agent") || "unknown";
         const path = headerList.get("referer") || "unknown";
 
-        await prisma.adminLog.create({
+        await (prisma as any).adminLog.create({
             data: {
                 adminId: currentUser.userId,
                 adminName: currentUser.email,

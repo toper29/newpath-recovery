@@ -9,7 +9,7 @@ export async function GET() {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const preferences = await prisma.userPreference.findUnique({
+        const preferences = await (prisma as any).userPreference.findUnique({
             where: { userId: currentUser.userId }
         });
 
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: "Feature slug required" }, { status: 400 });
         }
 
-        const prefs = await prisma.userPreference.findUnique({
+        const prefs = await (prisma as any).userPreference.findUnique({
             where: { userId: currentUser.userId }
         });
 
@@ -46,10 +46,10 @@ export async function POST(request: Request) {
                 newHideExplanations.push(featureSlug);
             }
         } else {
-            newHideExplanations = newHideExplanations.filter(s => s !== featureSlug);
+            newHideExplanations = newHideExplanations.filter((s: string) => s !== featureSlug);
         }
 
-        await prisma.userPreference.upsert({
+        await (prisma as any).userPreference.upsert({
             where: { userId: currentUser.userId },
             update: { hideExplanations: newHideExplanations },
             create: { 

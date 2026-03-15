@@ -32,7 +32,7 @@ export async function GET(
 
         // Real-time Calculation
         const checkInCount = user.dailyCheckIns.length;
-        const totalRisk = user.dailyCheckIns.reduce((sum, ci) => sum + (ci.riskScore || 0), 0);
+        const totalRisk = (user.dailyCheckIns as any[]).reduce((sum, ci) => sum + (ci.riskScore || 0), 0);
         const avgRisk = checkInCount > 0 ? (totalRisk / checkInCount) * 100 : 0;
         const cleanDays = user.dailyCheckIns.filter(ci => !ci.didGamble).length;
 

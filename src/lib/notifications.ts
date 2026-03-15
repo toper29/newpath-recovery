@@ -17,7 +17,7 @@ export async function createNotification(params: CreateNotificationParams) {
         // or just use role as provided. In current design, SUPERADMIN is ADMIN role.
         const targetRole = params.role === "SUPERADMIN" ? "ADMIN" : params.role;
 
-        return await prisma.notification.create({
+        return await (prisma as any).notification.create({
             data: {
                 userId: params.userId,
                 role: targetRole,

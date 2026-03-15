@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
         const currentUser = await getCurrentUser();
@@ -12,7 +12,7 @@ export async function GET(
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = params.id;
+        const { id: userId } = await context.params;
 
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -31,7 +31,7 @@ export async function GET(
         // Real-time analysis logic
         const totalCheckIns = user.dailyCheckIns.length;
         const gambleFreeDays = user.dailyCheckIns.filter(c => !c.didGamble).length;
-        const riskTrend = user.dailyCheckIns.slice(0, 7).map(c => c.riskScore || 0);
+        const riskTrend = (user.dailyCheckIns as any[]).slice(0, 7).map(c => c.riskScore || 0);
         const avgRisk = riskTrend.length > 0 ? riskTrend.reduce((a, b) => a + b, 0) / riskTrend.length : 0;
 
         // Categorize status based on activity
@@ -60,7 +60,7 @@ export async function GET(
                 checkIns: user.dailyCheckIns.map(c => ({
                     date: c.checkedAt,
                     status: c.didGamble ? "RELAPSE" : "CLEAN",
-                    risk: c.riskScore
+                    risk: (c as any).riskScore
                 })),
                 reportedSites: user.gamblingReports.length
             }

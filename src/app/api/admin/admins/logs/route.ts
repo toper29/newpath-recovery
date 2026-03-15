@@ -13,7 +13,7 @@ export async function GET(request: Request) {
         const limit = parseInt(searchParams.get("limit") || "50");
         const action = searchParams.get("action");
 
-        const logs = await prisma.adminLog.findMany({
+        const logs = await (prisma as any).adminLog.findMany({
             where: action ? { action } : {},
             orderBy: { createdAt: "desc" },
             take: limit
