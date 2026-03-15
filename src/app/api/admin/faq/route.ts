@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
     try {
-        const faqs = await prisma.faq.findMany({
+        const faqs = await prisma.fAQ.findMany({
             orderBy: { order: "asc" }
         });
         return NextResponse.json({ success: true, data: faqs });
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: "Question and answer are required" }, { status: 400 });
         }
 
-        const newFaq = await prisma.faq.create({
+        const newFaq = await prisma.fAQ.create({
             data: {
                 question: body.question,
                 answer: body.answer,

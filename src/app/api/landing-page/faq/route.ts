@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
     try {
-        const faqs = await prisma.faq.findMany({
+        const faqs = await prisma.fAQ.findMany({
             orderBy: { order: "asc" }
         });
         return NextResponse.json({ success: true, data: faqs });
