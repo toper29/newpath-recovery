@@ -209,9 +209,10 @@ export default function RecoveryChallenge14() {
 
     const fetchProgress = async () => {
         try {
+            const t = new Date().getTime();
             const [meRes, progRes] = await Promise.all([
-                fetch("/api/user/me"),
-                fetch("/api/user/progress")
+                fetch(`/api/user/me?t=${t}`),
+                fetch(`/api/user/progress?t=${t}`)
             ]);
             
             const meJson = await meRes.json();
@@ -351,6 +352,15 @@ export default function RecoveryChallenge14() {
             default: return <Award size={16} />;
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+                <Loader2 size={40} className="text-accent animate-spin" />
+                <p className="text-white/50 font-medium uppercase tracking-widest text-sm animate-pulse">Sinkronisasi Data Recovery...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
