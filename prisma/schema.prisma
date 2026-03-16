@@ -37,6 +37,7 @@ model User {
   gamblingReports     GamblingReport[]
   notifications       Notification[]
   userPreference      UserPreference?
+  lastActivity        String?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @default(now()) @updatedAt
 
