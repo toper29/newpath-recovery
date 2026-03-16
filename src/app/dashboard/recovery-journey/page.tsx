@@ -21,9 +21,9 @@ const STAGES = [
     },
     {
         id: "self-control",
-        title: "Stage 2: Self Control",
+        title: "Stage 2: Self-Control",
         subtitle: "Mulai mengambil kendali atas dorongan.",
-        label: "Self Control",
+        label: "Self-Control",
         color: "from-purple-500 to-pink-500",
         shadow: "shadow-purple-500/20",
         icon: Shield,

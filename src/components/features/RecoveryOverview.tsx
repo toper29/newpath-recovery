@@ -5,12 +5,20 @@ import { Award, BookOpen, Calendar, ShieldCheck, Target, TrendingUp, Zap } from 
 import Link from "next/link";
 
 const LEVEL_NAMES: Record<number, string> = {
-    1: "Awakening",
+    1: "Awareness",
     2: "Awareness",
     3: "Self-Control",
-    4: "Mind Builder",
-    5: "Discipline Mode",
-    6: "Master"
+    4: "Self-Control",
+    5: "Recovery Building",
+    6: "Recovery Building",
+    7: "Stability",
+    8: "Stability",
+    9: "Freedom",
+    10: "Freedom"
+};
+
+const getStageNumber = (level: number) => {
+    return Math.ceil(level / 2);
 };
 
 export default function RecoveryOverview() {
@@ -56,6 +64,7 @@ export default function RecoveryOverview() {
     const nextLevelName = LEVEL_NAMES[nextLevel] || "Legend";
     const xpNeeded = userData.level * 500;
     const progressPercent = Math.min(100, Math.round((userData.xp / xpNeeded) * 100));
+    const currentStage = getStageNumber(userData.level);
 
     return (
         <div className="bg-[#0A0F1F] border border-primary/20 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-stretch relative overflow-hidden shadow-xl">
@@ -70,9 +79,9 @@ export default function RecoveryOverview() {
                 </div>
                 
                 <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-1">
-                    Level {userData.level} <span className="text-foreground/40">—</span> <span className="text-accent">{currentLevelName}</span>
+                    Stage {currentStage} <span className="text-foreground/40">•</span> <span className="text-accent">{currentLevelName}</span>
                 </h2>
-                <p className="text-sm text-foreground/60 mb-6">Anda sedang membangun mental dan pola pikir baru yang lebih kuat.</p>
+                <p className="text-sm text-foreground/60 mb-6 font-medium">Level {userData.level} — Anda sedang membangun pola pikir baru yang lebih kuat.</p>
                 
                 <div className="bg-[#060A14] p-4 rounded-2xl border border-primary/10">
                     <div className="flex justify-between items-end mb-2">

@@ -248,14 +248,14 @@ export default function RecoveryChallenge14() {
     const nextDay = Math.min(userProgress.cleanDays + 1, 14);
     const progressPercent = userProgress.completionRate;
 
-    // Logic for 10 Stages over 14 Days
-    const getRecoveryStage = (days: number) => {
-        if (days >= 14) return { lv: 10, name: "New Path Mastery" };
-        if (days >= 13) return { lv: 9, name: "Personal Insight" };
-        if (days >= 11) return { lv: 8, name: "Decision Logic" };
-        if (days >= 9) return { lv: 7, name: "Behavior Analysis" };
-        if (days >= 7) return { lv: 6, name: "Trigger Detection" };
-        if (days >= 5) return { lv: 5, name: "Cognitive Skill" };
+    // Logic for Challenge Phases over 14 Days
+    const getChallengePhase = (days: number) => {
+        if (days >= 14) return { lv: 14, name: "New Path Mastery" };
+        if (days >= 13) return { lv: 13, name: "Personal Insight" };
+        if (days >= 11) return { lv: 12, name: "Decision Logic" };
+        if (days >= 9) return { lv: 10, name: "Behavior Analysis" };
+        if (days >= 7) return { lv: 8, name: "Trigger Detection" };
+        if (days >= 5) return { lv: 6, name: "Cognitive Skill" };
         if (days >= 4) return { lv: 4, name: "Pattern Detection" };
         if (days >= 3) return { lv: 3, name: "Exploration" };
         if (days >= 2) return { lv: 2, name: "Memory" };
@@ -263,7 +263,7 @@ export default function RecoveryChallenge14() {
         return { lv: 0, name: "Beginner" };
     };
 
-    const recoveryStage = getRecoveryStage(currentCompleted);
+    const challengePhase = getChallengePhase(currentCompleted);
 
     const handleSubmitCheckIn = async () => {
         const allAnswered = CHECK_IN_QUESTIONS.every(q => checkInAnswers[q.key] !== null);
@@ -322,7 +322,7 @@ export default function RecoveryChallenge14() {
                 setShowModal(false);
                 setShowAchievement({
                     title: CHALLENGE_CONTENT[nextDay-1].achievement.title,
-                    description: `Selamat! Kamu telah mencapai Stage ${getRecoveryStage(nextDay).lv}: ${getRecoveryStage(nextDay).name}`
+                    description: `Selamat! Kamu telah menyelesaikan Challenge Day ${nextDay}: ${getChallengePhase(nextDay).name}`
                 });
                 // Refresh to update XP display
                 await fetchProgress();
@@ -373,10 +373,10 @@ export default function RecoveryChallenge14() {
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                     <div className="relative">
                         <div className="w-24 h-24 rounded-[2rem] bg-accent/20 border-2 border-accent/40 flex items-center justify-center text-accent shadow-[0_0_30px_rgba(56,189,248,0.2)]">
-                            <span className="text-4xl font-black">{recoveryStage.lv}</span>
+                            <span className="text-4xl font-black">{currentCompleted}</span>
                         </div>
                         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-accent text-[#040814] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">
-                            Stage
+                            Day
                         </div>
                     </div>
 
@@ -499,14 +499,14 @@ export default function RecoveryChallenge14() {
                         
                         <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest text-[9px]">Recovery Status</span>
-                                <span className="text-[10px] font-black text-accent uppercase tracking-widest">{recoveryStage.name}</span>
+                                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest text-[9px]">Challenge Phase</span>
+                                <span className="text-[10px] font-black text-accent uppercase tracking-widest">{challengePhase.name}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                     <div className="h-full bg-accent transition-all duration-500" style={{ width: `${(recoveryStage.lv / 10) * 100}%` }} />
+                                     <div className="h-full bg-accent transition-all duration-500" style={{ width: `${(currentCompleted / 14) * 100}%` }} />
                                 </div>
-                                <span className="text-[10px] font-bold text-white/60">{recoveryStage.lv}/10</span>
+                                <span className="text-[10px] font-bold text-white/60">{currentCompleted}/14</span>
                             </div>
                         </div>
                      </div>
