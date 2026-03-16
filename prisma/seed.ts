@@ -16,7 +16,6 @@ async function main() {
       email: "user@newpath.com",
       password: hashedPassword,
       role: "USER",
-      status: "APPROVED",
       xp: 1250,
       level: 3,
     },
@@ -31,7 +30,6 @@ async function main() {
       email: "admin@newpath.com",
       password: adminPassword,
       role: "SUPERADMIN",
-      status: "APPROVED",
     },
   });
 
