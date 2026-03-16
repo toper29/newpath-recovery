@@ -10,54 +10,74 @@ import {
 
 const STAGES = [
     {
-        id: "awareness",
-        title: "Stage 1: Awareness",
-        subtitle: "Kesadaran diri adalah awal dari segalanya.",
-        label: "Awareness",
-        color: "from-blue-500 to-cyan-500",
+        id: "admission",
+        title: "Stage 1: Admission",
+        subtitle: "Mengakui adalah langkah pertama menuju perubahan.",
+        label: "Admission",
+        color: "from-blue-600 to-cyan-500",
         shadow: "shadow-blue-500/20",
         icon: Compass,
-        milestones: ["Login pertama", "Selesaikan tes adiksi"]
+        milestones: ["Login pertama", "Mulai perjalanan"]
+    },
+    {
+        id: "awareness",
+        title: "Stage 2: Awareness",
+        subtitle: "Memahami pola dan pemicu adiksi.",
+        label: "Awareness",
+        color: "from-cyan-500 to-blue-500",
+        shadow: "shadow-cyan-500/20",
+        icon: MapIcon,
+        milestones: ["Selesaikan tes adiksi", "Baca 1 edukasi"]
     },
     {
         id: "self-control",
-        title: "Stage 2: Self-Control",
+        title: "Stage 3: Self-Control",
         subtitle: "Mulai mengambil kendali atas dorongan.",
         label: "Self-Control",
-        color: "from-purple-500 to-pink-500",
-        shadow: "shadow-purple-500/20",
+        color: "from-indigo-500 to-purple-500",
+        shadow: "shadow-indigo-500/20",
         icon: Shield,
-        milestones: ["7 hari streak", "10 latihan kognitif"]
+        milestones: ["3 hari streak", "5 latihan kognitif"]
     },
     {
         id: "recovery-building",
-        title: "Stage 3: Recovery Building",
+        title: "Stage 4: Building",
         subtitle: "Membangun kebiasaan baru yang lebih sehat.",
         label: "Building",
-        color: "from-orange-500 to-red-500",
-        shadow: "shadow-orange-500/20",
+        color: "from-purple-500 to-pink-500",
+        shadow: "shadow-purple-500/20",
         icon: Zap,
-        milestones: ["14 hari streak", "25 latihan kognitif", "5 edukasi"]
+        milestones: ["7 hari streak", "10 latihan kognitif"]
     },
     {
         id: "stability",
-        title: "Stage 4: Stability",
-        subtitle: "Hidup lebih stabil dan terukur.",
+        title: "Stage 5: Stability",
+        subtitle: "Konsistensi adalah kunci kekuatan.",
         label: "Stability",
-        color: "from-green-500 to-emerald-500",
-        shadow: "shadow-green-500/20",
+        color: "from-pink-500 to-rose-500",
+        shadow: "shadow-pink-500/20",
         icon: Star,
-        milestones: ["30 hari streak", "50 latihan kognitif"]
+        milestones: ["14 hari streak", "20 latihan kognitif"]
+    },
+    {
+        id: "growth",
+        title: "Stage 6: Growth",
+        subtitle: "Bertumbuh melebihi batas yang lama.",
+        label: "Growth",
+        color: "from-emerald-500 to-teal-500",
+        shadow: "shadow-emerald-500/20",
+        icon: Milestone,
+        milestones: ["21 hari streak", "3 edukasi selesai"]
     },
     {
         id: "freedom",
-        title: "Stage 5: Freedom",
-        subtitle: "Merdeka dari belenggu kecanduan.",
+        title: "Stage 7: Freedom",
+        subtitle: "Merdeka dari belenggu masa lalu.",
         label: "Freedom",
         color: "from-yellow-400 to-orange-400",
         shadow: "shadow-yellow-500/20",
         icon: Flag,
-        milestones: ["100 hari streak", "100 latihan kognitif"]
+        milestones: ["30 hari streak", "Bantu yang lain"]
     },
 ];
 

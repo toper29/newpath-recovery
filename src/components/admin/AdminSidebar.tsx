@@ -21,42 +21,61 @@ import {
 } from "lucide-react";
 
 export const superAdminMenus = [
-    // Group: Overview
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Statistics", href: "/admin/stats", icon: BarChart2 },
-
-    // Group: User Management
-    { name: "User Management", href: "/admin/users", icon: Users },
-    { name: "Approve User", href: "/admin/approve", icon: UserPlus },
-
-    // Group: Site Monitoring
-    { name: "Data Laporan Situs", href: "/admin/reports", icon: ShieldAlert },
-
-    // Group: Content & CMS
-    { name: "Content Control", href: "/admin/content", icon: FileText },
-    { name: "FAQ Management", href: "/admin/faq", icon: FileText },
-    { name: "Features CMS", href: "/admin/features", icon: FileText },
-    { name: "Stories / Testimoni", href: "/admin/stories", icon: FileText },
-    { name: "Landing Page CMS", href: "/admin/landing-page", icon: LayoutDashboard },
-
-    // Group: System Settings
-    { name: "Admin Management", href: "/admin/admins", icon: ShieldCheck },
-    { name: "Feature Control", href: "/admin/features", icon: Sliders },
-    { name: "Game Thresholds", href: "/admin/features/thresholds", icon: Trophy },
-
-    // Group: Security
-    { name: "Security Center", href: "/admin/security/dashboard", icon: Lock },
-    { name: "Security Scanner", href: "/admin/security/scanner", icon: Search },
-    { name: "Security Logs", href: "/admin/logs", icon: ShieldAlert },
+    {
+        section: "Overview",
+        items: [
+            { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+            { name: "Statistics", href: "/admin/stats", icon: BarChart2 },
+        ]
+    },
+    {
+        section: "Manajemen Pengguna",
+        items: [
+            { name: "User Management", href: "/admin/users", icon: Users },
+            { name: "Approve User", href: "/admin/approve", icon: UserPlus },
+            { name: "Data Laporan Situs", href: "/admin/reports", icon: ShieldAlert },
+        ]
+    },
+    {
+        section: "Konten & CMS",
+        items: [
+            { name: "Content Control", href: "/admin/content", icon: FileText },
+            { name: "FAQ Management", href: "/admin/faq", icon: FileText },
+            { name: "Features CMS", href: "/admin/features", icon: FileText },
+            { name: "Stories / Testimoni", href: "/admin/stories", icon: FileText },
+            { name: "Landing Page CMS", href: "/admin/landing-page", icon: LayoutDashboard },
+        ]
+    },
+    {
+        section: "Sistem & Keamanan",
+        items: [
+            { name: "Admin Management", href: "/admin/admins", icon: ShieldCheck },
+            { name: "Feature Control", href: "/admin/features", icon: Sliders },
+            { name: "Game Thresholds", href: "/admin/features/thresholds", icon: Trophy },
+            { name: "Security Center", href: "/admin/security/dashboard", icon: Lock },
+            { name: "Security Scanner", href: "/admin/security/scanner", icon: Search },
+            { name: "Security Logs", href: "/admin/logs", icon: ShieldAlert },
+        ]
+    }
 ];
 
 export const adminMenus = [
-    { name: "Dashboard", href: "/admin/moderator", icon: LayoutDashboard },
-    { name: "Statistics", href: "/admin/stats", icon: BarChart2 },
-    { name: "User Management", href: "/admin/users", icon: Users },
-    { name: "Approve User", href: "/admin/approve", icon: UserPlus },
-    { name: "Content Management", href: "/admin/content", icon: FileText },
-    { name: "Stories / Testimoni", href: "/admin/stories", icon: FileText },
+    {
+        section: "Overview",
+        items: [
+            { name: "Dashboard", href: "/admin/moderator", icon: LayoutDashboard },
+            { name: "Statistics", href: "/admin/stats", icon: BarChart2 },
+        ]
+    },
+    {
+        section: "Manajemen",
+        items: [
+            { name: "User Management", href: "/admin/users", icon: Users },
+            { name: "Approve User", href: "/admin/approve", icon: UserPlus },
+            { name: "Content Management", href: "/admin/content", icon: FileText },
+            { name: "Stories / Testimoni", href: "/admin/stories", icon: FileText },
+        ]
+    }
 ];
 
 export default function AdminSidebar({ user }: { user?: any }) {
@@ -64,7 +83,7 @@ export default function AdminSidebar({ user }: { user?: any }) {
     const router = useRouter();
     const { isOpen, close } = useSidebar();
 
-    const menus = user?.role === "ADMIN" ? adminMenus : superAdminMenus;
+    const sections = user?.role === "ADMIN" ? adminMenus : superAdminMenus;
     
     // Derived display data
     const displayRole = user?.role === "ADMIN" ? "Admin" : "Super Admin";
@@ -108,24 +127,33 @@ export default function AdminSidebar({ user }: { user?: any }) {
                     </button>
                 </div>
 
-                <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto section-scrollbar">
-                    {menus.map((menu) => {
-                        const isActive = pathname === menu.href;
-                        return (
-                            <Link
-                                key={menu.name}
-                                href={menu.href}
-                                onClick={close}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
-                                    ? "bg-primary/30 text-accent border border-primary/50 shadow-[0_0_15px_rgba(56,189,248,0.05)]"
-                                    : "text-foreground/60 hover:text-foreground hover:bg-foreground/5"
-                                    }`}
-                            >
-                                <menu.icon size={18} className={isActive ? "text-accent" : "text-foreground/50"} />
-                                {menu.name}
-                            </Link>
-                        );
-                    })}
+                <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto section-scrollbar">
+                    {sections.map((section) => (
+                        <div key={section.section} className="space-y-2">
+                            <h2 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-accent/50">
+                                {section.section}
+                            </h2>
+                            <div className="space-y-1">
+                                {section.items.map((menu) => {
+                                    const isActive = pathname === menu.href;
+                                    return (
+                                        <Link
+                                            key={menu.name}
+                                            href={menu.href}
+                                            onClick={close}
+                                            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive
+                                                ? "bg-primary/20 text-accent border border-primary/30 shadow-[0_0_15px_rgba(56,189,248,0.05)]"
+                                                : "text-foreground/50 hover:text-foreground hover:bg-foreground/5"
+                                                }`}
+                                        >
+                                            <menu.icon size={16} className={isActive ? "text-accent" : "text-foreground/30"} />
+                                            {menu.name}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </nav>
 
                 <div className="p-6 border-t border-primary/20 bg-background/50">
