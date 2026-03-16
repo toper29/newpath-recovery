@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -15,16 +14,16 @@ model User {
   password            String
   phone               String?
   role                String              @default("USER")
-  membership_status    String              @default("FREE")
+  membership_status   String              @default("FREE")
   premium_start_date  DateTime?
   premium_expiry_date DateTime?
   donation_status     String?             @default("NONE")
   admin_override      Boolean             @default(false)
-  failedLoginAttempts  Int                 @default(0)
+  failedLoginAttempts Int                 @default(0)
   lockedUntil         DateTime?
   streak              Int                 @default(0)
   longestStreak       Int                 @default(0)
-  programStartedAt    DateTime? // Set on first check-in
+  programStartedAt    DateTime?
   addictionTests      AddictionTest[]
   completions         ArticleCompletion[]
   challengeProgress   ChallengeProgress[]
@@ -41,14 +40,14 @@ model User {
 
 model Achievement {
   id          String            @id @default(uuid())
-  key         String            @unique // e.g., 'first_step', 'logic_ninja'
+  key         String            @unique
   title       String
   description String
-  mission     String // Human readable mission description
-  category    String // 'CONSISTENCY', 'COGNITIVE', 'EDUCATION', 'STREAK'
-  targetValue Int // e.g., 10 (for 10 games)
-  iconName    String // Lucide icon name
-  rewardTitle String? // Optional title rewarded upon completion
+  mission     String
+  category    String
+  targetValue Int
+  iconName    String
+  rewardTitle String?
   createdAt   DateTime          @default(now())
   userRel     UserAchievement[]
 }
@@ -83,7 +82,7 @@ model ChallengeProgress {
   id           String   @id @default(uuid())
   userId       String
   dayCompleted Int
-  status       String
+  status       String   @default("in-progress")
   completedAt  DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -183,7 +182,7 @@ model LandingPageContent {
 
 model GamblingReport {
   id            String   @id @default(uuid())
-  userId        String? // Optional, if logged in
+  userId        String?
   siteName      String
   siteLink      String
   hasRegistered Boolean  @default(false)
@@ -197,7 +196,7 @@ model GamblingReport {
 
 model Feature {
   id          String   @id @default(uuid())
-  iconName    String // Lucide icon name string
+  iconName    String
   title       String
   description String
   order       Int      @default(0)
@@ -207,7 +206,7 @@ model Feature {
 model FAQ {
   id        String   @id @default(uuid())
   question  String
-  answer    String   @db.Text
+  answer    String
   category  String?
   order     Int      @default(0)
   updatedAt DateTime @updatedAt
@@ -216,8 +215,8 @@ model FAQ {
 model Testimonial {
   id         String   @id @default(uuid())
   author     String
-  role       String? // e.g., "Ex-Gambler", "Counselor"
-  content    String   @db.Text
+  role       String?
+  content    String
   avatarUrl  String?
   isFeatured Boolean  @default(false)
   createdAt  DateTime @default(now())
@@ -225,13 +224,13 @@ model Testimonial {
 
 model Notification {
   id        String   @id @default(uuid())
-  userId    String? // Null for broadcast
-  role      String // "USER" or "ADMIN"
+  userId    String?
+  role      String
   title     String
   message   String
-  type      String // e.g., "CHECKIN_REMINDER", "NEW_USER_ALERT"
+  type      String
   isRead    Boolean  @default(false)
-  link      String? // Action path
+  link      String?
   createdAt DateTime @default(now())
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -242,7 +241,7 @@ model Notification {
 model UserPreference {
   id               String   @id @default(uuid())
   userId           String   @unique
-  hideExplanations String[] // Slugs of features to hide
+  hideExplanations String   @default("")
   updatedAt        DateTime @updatedAt
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -251,7 +250,7 @@ model AdminLog {
   id        String   @id @default(uuid())
   adminId   String
   adminName String
-  action    String // e.g., "CREATE_ADMIN", "USER_EDIT", "LOGIN"
+  action    String
   target    String?
   details   String?
   ipAddress String?
