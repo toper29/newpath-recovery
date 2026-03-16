@@ -3,6 +3,13 @@
 import { Check, X, PhoneCall, Plus, FileText, Quote, AlertOctagon } from "lucide-react";
 
 export default function ModeratorDashboard() {
+    const highRiskUsers = [
+        { name: "Rian H.", activity: "2 mins ago", score: 95 },
+        { name: "Lina W.", activity: "1 hour ago", score: 60 },
+    ];
+
+    return (
+        <div className="space-y-8">
             {/* Dashboard Alerts */}
             <div className="bg-[#110505] border border-red-500/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-4">
