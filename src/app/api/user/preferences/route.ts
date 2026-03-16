@@ -13,14 +13,9 @@ export async function GET() {
             where: { userId: currentUser.userId }
         });
 
-        // Convert comma-separated string back to array
-        const hideExplanationsArray = preferences?.hideExplanations 
-            ? preferences.hideExplanations.split(',').filter(Boolean) 
-            : [];
-
         return NextResponse.json({ 
             success: true, 
-            hideExplanations: hideExplanationsArray
+            hideExplanations: preferences?.hideExplanations || [] 
         });
     } catch (error) {
         return NextResponse.json({ success: false, error: "Gagal mengambil preferensi" }, { status: 500 });
@@ -44,21 +39,15 @@ export async function POST(request: Request) {
             where: { userId: currentUser.userId }
         });
 
-        // Convert string to array for easier manipulation
-        let currentArray = prefs?.hideExplanations 
-            ? prefs.hideExplanations.split(',').filter(Boolean) 
-            : [];
+        let newHideExplanations = prefs?.hideExplanations || [];
 
         if (hide) {
-            if (!currentArray.includes(featureSlug)) {
-                currentArray.push(featureSlug);
+            if (!newHideExplanations.includes(featureSlug)) {
+                newHideExplanations.push(featureSlug);
             }
         } else {
-            currentArray = currentArray.filter((s: string) => s !== featureSlug);
+            newHideExplanations = newHideExplanations.filter((s: string) => s !== featureSlug);
         }
-
-        // Convert array back to comma-separated string
-        const newHideExplanations = currentArray.join(',');
 
         await (prisma as any).userPreference.upsert({
             where: { userId: currentUser.userId },
