@@ -439,6 +439,13 @@ export default function RealitySlotSimulator() {
               </button>
            </div>
         </div>
+        <SlotOnboardingModal 
+            onClose={() => {
+                setIsOnboardingOpen(false);
+                setForceShowOnboarding(false);
+            }} 
+            forceShow={forceShowOnboarding}
+        />
       </div>
     );
   }
