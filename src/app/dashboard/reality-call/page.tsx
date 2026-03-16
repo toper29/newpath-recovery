@@ -1,25 +1,101 @@
-"use client";
-
-import { PhoneCall, AlertTriangle, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { PhoneCall, AlertTriangle, ShieldCheck, Heart, ArrowRight, Loader2, BookOpen } from "lucide-react";
+import Link from "next/link";
 
 export default function RealityCallPage() {
+    const [articles, setArticles] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch("/api/articles")
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) {
+                    // Filter for stories or just take latest
+                    setArticles(json.data.slice(0, 3));
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const hotlines = [
+        { name: "National Hotline", number: "1500-454", desc: "Layanan Konseling Kemensos" },
+        { name: "Suicide Prevention", number: "119", desc: "Bantuan Psikologis Darurat" },
+    ];
+
     return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center bg-[#0A0F1F] border border-red-500/20 rounded-2xl p-8 relative overflow-hidden">
-            <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-red-500/0 via-red-500 to-red-500/0"></div>
-            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
-                <PhoneCall size={32} />
+        <div className="space-y-12 pb-20">
+            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center bg-[#0A0F1F] border border-red-500/20 rounded-[3rem] p-8 md:p-12 relative overflow-hidden shadow-2xl">
+                <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-red-500/0 via-red-500 to-red-500/0"></div>
+                <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-red-500/5 rounded-full blur-[100px]" />
+                
+                <div className="w-20 h-20 rounded-3xl bg-red-500/10 flex items-center justify-center mb-6 text-red-500 shadow-[0_0_40px_rgba(239,68,68,0.2)] animate-pulse">
+                    <PhoneCall size={40} />
+                </div>
+                
+                <h1 className="text-3xl md:text-5xl font-black text-white italic tracking-tighter uppercase mb-4">Emergency Reality Call</h1>
+                <p className="text-white/60 max-w-2xl mb-10 text-lg font-medium">
+                    Anda tidak sendirian. Saat keinginan mendesak muncul, ingatlah alasan Anda memulai. Gunakan jalur bantuan di bawah ini atau baca kisah mereka yang telah berhasil keluar.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
+                    {hotlines.map((h, i) => (
+                        <a 
+                            key={i}
+                            href={`tel:${h.number.replace('-', '')}`}
+                            className="bg-white/5 border border-red-500/30 p-6 rounded-[2rem] flex items-center justify-between group hover:bg-red-500 hover:border-red-500 transition-all duration-300"
+                        >
+                            <div className="text-left">
+                                <p className="text-[10px] font-black text-red-400 group-hover:text-white/80 uppercase tracking-widest mb-1">{h.name}</p>
+                                <p className="text-2xl font-black text-white tracking-tighter italic">{h.number}</p>
+                                <p className="text-[10px] text-white/40 group-hover:text-white/60 mt-1">{h.desc}</p>
+                            </div>
+                            <div className="w-12 h-12 rounded-2xl bg-red-500/20 group-hover:bg-white/20 flex items-center justify-center text-red-500 group-hover:text-white transition-colors">
+                                <PhoneCall size={24} />
+                            </div>
+                        </a>
+                    ))}
+                </div>
             </div>
-            <h1 className="text-2xl font-black text-foreground mb-3">Emergency Reality Call</h1>
-            <p className="text-foreground/60 max-w-lg mb-8">
-                Halaman ini akan terintegrasi dengan database untuk menampilkan cerita nyata orang-orang yang bangkrut akibat mesin slot. Anda tidak sendirian dalam perjuangan ini.
-            </p>
-            <div className="flex gap-4">
-                <button className="px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-500 font-bold rounded-xl flex items-center gap-2 hover:bg-red-500/20 transition-colors">
-                    <AlertTriangle size={18} /> Call National Hotline
-                </button>
-                <button className="px-6 py-3 bg-primary/10 border border-primary/30 text-accent font-bold rounded-xl flex items-center gap-2 hover:bg-primary/20 transition-colors">
-                    <ShieldCheck size={18} /> Baca Cerita Selamat
-                </button>
+
+            {/* Stories Section */}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between px-2">
+                    <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase flex items-center gap-3">
+                        <Heart className="text-red-500" size={24} /> Kisah Perjuangan
+                    </h2>
+                    <Link href="/dashboard/edukasi" className="text-xs font-bold text-accent hover:underline uppercase tracking-widest">
+                        Lihat Semua &rarr;
+                    </Link>
+                </div>
+
+                {loading ? (
+                    <div className="flex justify-center p-20">
+                        <Loader2 className="animate-spin text-accent" size={40} />
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {articles.map((art: any) => (
+                            <Link 
+                                key={art.id} 
+                                href={`/dashboard/edukasi?id=${art.id}`}
+                                className="bg-[#0A0F1F] border border-white/5 rounded-[2rem] p-6 hover:border-accent/50 transition-all group flex flex-col justify-between"
+                            >
+                                <div>
+                                    <div className="w-12 h-12 rounded-2xl bg-accent/10 text-accent flex items-center justify-center mb-4">
+                                        <BookOpen size={24} />
+                                    </div>
+                                    <h3 className="text-lg font-black text-white leading-tight mb-2 group-hover:text-accent transition-colors">{art.title}</h3>
+                                    <p className="text-white/40 text-xs line-clamp-3 mb-6">{art.content.replace(/<[^>]*>?/gm, '')}</p>
+                                </div>
+                                <div className="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-widest">
+                                    Baca Selengkapnya <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

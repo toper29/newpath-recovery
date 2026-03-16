@@ -21,18 +21,19 @@ export async function GET(request: Request) {
         // Get user creation date and program start
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { createdAt: true, streak: true }
+            select: { createdAt: true, streak: true, programStartedAt: true }
         });
 
         if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
 
-        // Calculate days since joining
-        const joinDate = new Date(user.createdAt);
-        joinDate.setHours(0, 0, 0, 0);
+        // Calculate days since starting the program
+        // Use programStartedAt if it exists, otherwise fallback to createdAt
+        const startDate = user.programStartedAt ? new Date(user.programStartedAt) : new Date(user.createdAt);
+        startDate.setHours(0, 0, 0, 0);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        const diffTime = Math.abs(today.getTime() - joinDate.getTime());
+        const diffTime = Math.abs(today.getTime() - startDate.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         
         // Cap program at 14 days

@@ -26,6 +26,7 @@ model User {
   lockedUntil         DateTime?
   streak              Int                 @default(0)
   longestStreak       Int                 @default(0)
+  programStartedAt    DateTime? // Set on first check-in
   addictionTests      AddictionTest[]
   completions         ArticleCompletion[]
   challengeProgress   ChallengeProgress[]
@@ -36,20 +37,22 @@ model User {
   gamblingReports     GamblingReport[]
   notifications       Notification[]
   userPreference      UserPreference?
+
+  @@index([email])
 }
 
 model Achievement {
-  id           String            @id @default(uuid())
-  key          String            @unique // e.g., 'first_step', 'logic_ninja'
-  title        String
-  description  String
-  mission      String            // Human readable mission description
-  category     String            // 'CONSISTENCY', 'COGNITIVE', 'EDUCATION', 'STREAK'
-  targetValue  Int               // e.g., 10 (for 10 games)
-  iconName     String            // Lucide icon name
-  rewardTitle  String?           // Optional title rewarded upon completion
-  createdAt    DateTime          @default(now())
-  userRel      UserAchievement[]
+  id          String            @id @default(uuid())
+  key         String            @unique // e.g., 'first_step', 'logic_ninja'
+  title       String
+  description String
+  mission     String // Human readable mission description
+  category    String // 'CONSISTENCY', 'COGNITIVE', 'EDUCATION', 'STREAK'
+  targetValue Int // e.g., 10 (for 10 games)
+  iconName    String // Lucide icon name
+  rewardTitle String? // Optional title rewarded upon completion
+  createdAt   DateTime          @default(now())
+  userRel     UserAchievement[]
 }
 
 model UserAchievement {
@@ -64,6 +67,7 @@ model UserAchievement {
   user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
+  @@index([userId])
 }
 
 model AddictionTest {
@@ -73,6 +77,8 @@ model AddictionTest {
   category  String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model ChallengeProgress {
@@ -82,6 +88,8 @@ model ChallengeProgress {
   status       String
   completedAt  DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model FeatureUsage {
@@ -90,6 +98,8 @@ model FeatureUsage {
   featureName String
   usedAt      DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model GameSession {
@@ -101,6 +111,8 @@ model GameSession {
   score    Int?
   playedAt DateTime @default(now())
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model SecurityLog {
@@ -121,6 +133,8 @@ model DailyCheckIn {
   riskScore          Float?
   note               String?
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Article {
@@ -143,6 +157,7 @@ model ArticleCompletion {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, articleId])
+  @@index([userId])
 }
 
 model SystemSetting {
@@ -167,21 +182,24 @@ model LandingPageContent {
   stats_rate  String
   updatedAt   DateTime @updatedAt
 }
+
 model GamblingReport {
-  id              String   @id @default(uuid())
-  userId          String?  // Optional, if logged in
-  siteName        String
-  siteLink        String
-  hasRegistered   Boolean  @default(false)
-  remarks         String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id            String   @id @default(uuid())
+  userId        String? // Optional, if logged in
+  siteName      String
+  siteLink      String
+  hasRegistered Boolean  @default(false)
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
 }
 
 model Feature {
   id          String   @id @default(uuid())
-  iconName    String   // Lucide icon name string
+  iconName    String // Lucide icon name string
   title       String
   description String
   order       Int      @default(0)
@@ -200,7 +218,7 @@ model FAQ {
 model Testimonial {
   id         String   @id @default(uuid())
   author     String
-  role       String?  // e.g., "Ex-Gambler", "Counselor"
+  role       String? // e.g., "Ex-Gambler", "Counselor"
   content    String   @db.Text
   avatarUrl  String?
   isFeatured Boolean  @default(false)
@@ -209,16 +227,17 @@ model Testimonial {
 
 model Notification {
   id        String   @id @default(uuid())
-  userId    String?  // Null for broadcast
-  role      String   // "USER" or "ADMIN"
+  userId    String? // Null for broadcast
+  role      String // "USER" or "ADMIN"
   title     String
   message   String
-  type      String   // e.g., "CHECKIN_REMINDER", "NEW_USER_ALERT"
+  type      String // e.g., "CHECKIN_REMINDER", "NEW_USER_ALERT"
   isRead    Boolean  @default(false)
-  link      String?  // Action path
+  link      String? // Action path
   createdAt DateTime @default(now())
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@index([userId, role])
 }
 
@@ -234,7 +253,7 @@ model AdminLog {
   id        String   @id @default(uuid())
   adminId   String
   adminName String
-  action    String   // e.g., "CREATE_ADMIN", "USER_EDIT", "LOGIN"
+  action    String // e.g., "CREATE_ADMIN", "USER_EDIT", "LOGIN"
   target    String?
   details   String?
   ipAddress String?

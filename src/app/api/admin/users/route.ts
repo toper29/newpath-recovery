@@ -25,22 +25,31 @@ export async function GET(request: Request) {
 
         const { searchParams } = new URL(request.url);
         const status = searchParams.get("status") || "ALL";
+        const page = parseInt(searchParams.get("page") || "1");
+        const limit = parseInt(searchParams.get("limit") || "20");
+        const skip = (page - 1) * limit;
         
         const whereClause: any = { role: "USER" };
         if (status !== "ALL") {
             whereClause.status = status;
         }
 
-        const users = await prisma.user.findMany({
-            where: whereClause,
-            orderBy: { createdAt: "desc" },
-            include: {
-                addictionTests: {
-                    orderBy: { createdAt: "desc" },
-                    take: 1
+        // Fetch users with pagination and total count
+        const [users, totalCount] = await Promise.all([
+            prisma.user.findMany({
+                where: whereClause,
+                orderBy: { createdAt: "desc" },
+                skip,
+                take: limit,
+                include: {
+                    addictionTests: {
+                        orderBy: { createdAt: "desc" },
+                        take: 1
+                    }
                 }
-            }
-        });
+            }),
+            prisma.user.count({ where: whereClause })
+        ]);
 
         // Format data for the UI
         const formattedUsers = users.map((user: any) => ({
@@ -56,7 +65,16 @@ export async function GET(request: Request) {
             latestScore: user.addictionTests.length > 0 ? user.addictionTests[0].score : 0,
         }));
 
-        return NextResponse.json({ success: true, data: formattedUsers });
+        return NextResponse.json({ 
+            success: true, 
+            data: formattedUsers,
+            pagination: {
+                total: totalCount,
+                page,
+                limit,
+                totalPages: Math.ceil(totalCount / limit)
+            }
+        });
     } catch (error: any) {
         console.error("User Management API Error:", error);
         return NextResponse.json({ success: false, error: "Failed to fetch users" }, { status: 500 });

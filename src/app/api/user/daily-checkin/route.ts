@@ -4,6 +4,14 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 import { incrementAchievement, checkAchievement } from "@/lib/achievements";
+import { z } from "zod";
+
+const checkInSchema = z.object({
+    didGamble: z.boolean(),
+    feltLikeDepositing: z.boolean(),
+    openedGamblingSite: z.boolean(),
+    note: z.string().optional()
+});
 
 export const dynamic = "force-dynamic";
 
@@ -28,11 +36,16 @@ export async function POST(request: Request) {
         const userId = payload.userId as string;
 
         const body = await request.json();
-        const { didGamble, feltLikeDepositing, openedGamblingSite } = body;
-
-        if (didGamble === undefined || feltLikeDepositing === undefined || openedGamblingSite === undefined) {
-            return NextResponse.json({ success: false, error: "All check-in questions are required" }, { status: 400 });
+        const validation = checkInSchema.safeParse(body);
+        
+        if (!validation.success) {
+            return NextResponse.json({ 
+                success: false, 
+                error: "Invalid input format: " + validation.error.issues.map(e => e.path.join(".")).join(", ")
+            }, { status: 400 });
         }
+        
+        const { didGamble, feltLikeDepositing, openedGamblingSite } = validation.data;
 
         // Check if already checked in today
         const today = new Date();
@@ -105,14 +118,23 @@ export async function POST(request: Request) {
         const baseXp = 10; // Base XP for completing the check-in
         const totalXpToAdd = baseXp + xpBonus;
 
-        // Update user streak and XP
+        // Update user streak, XP and set programStartedAt if first check-in
+        const updateData: any = {
+            streak: newStreak,
+            longestStreak: newLongestStreak,
+            xp: { increment: totalXpToAdd }
+        };
+
+        // If this is the very first check-in, set the program start date to today
+        if (!user.streak && !user.longestStreak) {
+             const startTs = new Date();
+             startTs.setHours(0,0,0,0);
+             updateData.programStartedAt = startTs;
+        }
+
         await prisma.user.update({
             where: { id: userId },
-            data: {
-                streak: newStreak,
-                longestStreak: newLongestStreak,
-                xp: { increment: totalXpToAdd }
-            }
+            data: updateData
         });
 
         // Trigger Achievement Checks

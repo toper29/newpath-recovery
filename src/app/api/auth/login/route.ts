@@ -3,16 +3,26 @@ import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
+import { z } from "zod";
+
+const loginSchema = z.object({
+    email: z.string().email("Invalid email format"),
+    password: z.string().min(6, "Password must be at least 6 characters")
+});
 
 export async function POST(request: Request) {
     try {
-        let body;
-        try {
-            body = await request.json();
-        } catch (e) {
-            return NextResponse.json({ success: false, error: "Empty request body" }, { status: 400 });
+        const body = await request.json();
+        const validation = loginSchema.safeParse(body);
+        
+        if (!validation.success) {
+            return NextResponse.json({ 
+                success: false, 
+                error: validation.error.issues[0].message 
+            }, { status: 400 });
         }
-        const { email, password } = body;
+        
+        const { email, password } = validation.data;
 
         if (!email || !password) {
             return NextResponse.json({ success: false, error: "Email and password are required" }, { status: 400 });

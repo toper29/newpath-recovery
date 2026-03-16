@@ -26,10 +26,13 @@ export default function RelapseIntervention() {
                 const json = await res.json();
                 if (json.success && json.data) {
                     setRiskData(json.data);
-                    // Show popup for HIGH risk, notification for MEDIUM
-                    if (json.data.riskLevel === "HIGH") {
-                        setShowPopup(true);
-                    }
+                    // Add a slight delay to stagger notifications (Avoid fatigue)
+                    setTimeout(() => {
+                        // Show popup for HIGH risk, notification for MEDIUM
+                        if (json.data.riskLevel === "HIGH") {
+                            setShowPopup(true);
+                        }
+                    }, 2000);
                 }
             } catch (err) {
                 console.error("Failed to fetch relapse risk", err);
