@@ -43,9 +43,14 @@ export default function AdminManagementPage() {
         try {
             const res = await fetch("/api/admin/admins");
             const json = await res.json();
-            if (json.success) setAdmins(json.data);
+            if (json.success && Array.isArray(json.data)) {
+                setAdmins(json.data);
+            } else {
+                setAdmins([]);
+            }
         } catch (err) {
             console.error("Failed to fetch admins", err);
+            setAdmins([]);
         } finally {
             setLoading(false);
         }
@@ -56,9 +61,14 @@ export default function AdminManagementPage() {
         try {
             const res = await fetch("/api/admin/admins/logs");
             const json = await res.json();
-            if (json.success) setLogs(json.data);
+            if (json.success && Array.isArray(json.data)) {
+                setLogs(json.data);
+            } else {
+                setLogs([]);
+            }
         } catch (err) {
             console.error("Failed to fetch logs", err);
+            setLogs([]);
         } finally {
             setLogsLoading(false);
         }

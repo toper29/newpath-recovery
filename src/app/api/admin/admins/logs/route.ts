@@ -19,7 +19,18 @@ export async function GET(request: Request) {
             take: limit
         });
 
-        return NextResponse.json({ success: true, logs });
+        const formattedLogs = logs.map((log: any) => ({
+            ...log,
+            date: new Date(log.createdAt).toLocaleString('en-US', { 
+                month: 'short', 
+                day: '2-digit', 
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+        }));
+
+        return NextResponse.json({ success: true, data: formattedLogs });
     } catch (error: any) {
         console.error("Fetch Logs Error:", error);
         return NextResponse.json({ success: false, error: "Gagal mengambil log sistem" }, { status: 500 });
