@@ -19,29 +19,29 @@ export default function Home() {
   const [testimonials, setTestimonials] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/landing-page')
+    fetch('/api/landing-page', { cache: 'no-store' })
       .then(res => res.json())
       .then(json => {
         console.log('Landing Page API Response:', json);
-        if (json.success) setContent(json.data);
+        if (json.success && json.data) setContent(json.data);
       });
 
-    fetch('/api/landing-page/stories')
+    fetch('/api/landing-page/stories', { cache: 'no-store' })
       .then(res => res.json())
       .then(json => {
-        if (json.success) setStories(json.data);
+        if (json.success) setStories(json.data || []);
       });
 
-    fetch('/api/landing-page/features')
+    fetch('/api/landing-page/features', { cache: 'no-store' })
       .then(res => res.json())
       .then(json => {
-        if (json.success && json.data.length > 0) setFeatures(json.data);
+        if (json.success && json.data && json.data.length > 0) setFeatures(json.data);
       });
 
-    fetch('/api/landing-page/testimonials')
+    fetch('/api/landing-page/testimonials', { cache: 'no-store' })
       .then(res => res.json())
       .then(json => {
-        if (json.success && json.data.length > 0) setTestimonials(json.data);
+        if (json.success && json.data && json.data.length > 0) setTestimonials(json.data);
       });
   }, []);
 

@@ -22,7 +22,7 @@ export default function LandingPageCMS() {
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     useEffect(() => {
-        fetch("/api/landing-page")
+        fetch("/api/landing-page", { cache: 'no-store' })
             .then((res) => res.json())
             .then((json) => {
                 if (json.success && json.data) {
