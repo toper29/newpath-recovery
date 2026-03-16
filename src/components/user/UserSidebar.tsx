@@ -70,9 +70,17 @@ export default function UserSidebar() {
 
     useEffect(() => {
         fetch("/api/user/me")
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to fetch");
+                return res.json();
+            })
             .then(json => {
                 if (json.success) setUserData(json.data);
+                else setUserData({ username: "Guest" }); // Fallback
+            })
+            .catch(err => {
+                console.error(err);
+                setUserData({ username: "Disconnected" }); // Fallback
             });
     }, []);
 

@@ -28,13 +28,13 @@ export async function GET(request: Request) {
                 where: { id: userId },
                 select: { 
                     xp: true, level: true, username: true, email: true, phone: true, 
-                    streak: true, longestStreak: true, title: true,
+                    streak: true, longestStreak: true,
                     membership_status: true, premium_start_date: true, premium_expiry_date: true, admin_override: true
                 } as any
             });
         } catch (e) {
             console.log("Standard findUnique failed, trying queryRaw fallback for User...");
-            const rawUsers: any[] = await prisma.$queryRaw`SELECT xp, level, username, email, phone, streak, longestStreak, title, membership_status, premium_start_date, premium_expiry_date, admin_override FROM User WHERE id = ${userId} LIMIT 1`;
+            const rawUsers: any[] = await prisma.$queryRaw`SELECT xp, level, username, email, phone, streak, longestStreak, membership_status, premium_start_date, premium_expiry_date, admin_override FROM User WHERE id = ${userId} LIMIT 1`;
             user = rawUsers[0];
         }
 
