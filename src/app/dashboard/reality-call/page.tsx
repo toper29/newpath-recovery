@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { PhoneCall, AlertTriangle, ShieldCheck, Heart, ArrowRight, Loader2, BookOpen } from "lucide-react";
 import Link from "next/link";
