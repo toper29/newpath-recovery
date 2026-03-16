@@ -46,7 +46,6 @@ export async function GET(request: Request) {
                     email: "admin@newpath.com",
                     password: adminPassword,
                     role: "SUPERADMIN",
-                    status: "APPROVED",
                 },
             });
             results.push("✅ Admin seeded");
@@ -59,7 +58,6 @@ export async function GET(request: Request) {
                     email: "user@newpath.com",
                     password: userPassword,
                     role: "USER",
-                    status: "APPROVED",
                     xp: 1250,
                     level: 3,
                 },

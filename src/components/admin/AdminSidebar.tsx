@@ -32,7 +32,6 @@ export const superAdminMenus = [
         section: "Manajemen Pengguna",
         items: [
             { name: "User Management", href: "/admin/users", icon: Users },
-            { name: "Approve User", href: "/admin/approve", icon: UserPlus },
             { name: "Data Laporan Situs", href: "/admin/reports", icon: ShieldAlert },
         ]
     },
@@ -71,7 +70,6 @@ export const adminMenus = [
         section: "Manajemen",
         items: [
             { name: "User Management", href: "/admin/users", icon: Users },
-            { name: "Approve User", href: "/admin/approve", icon: UserPlus },
             { name: "Content Management", href: "/admin/content", icon: FileText },
             { name: "Stories / Testimoni", href: "/admin/stories", icon: FileText },
         ]

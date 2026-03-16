@@ -11,7 +11,7 @@ export async function GET() {
 
         // 1. Basic Counts
         const totalUsers = await prisma.user.count({ where: { role: "USER" } });
-        const pendingApproval = await prisma.user.count({ where: { role: "USER", status: "PENDING" } });
+        const pendingApproval = 0; // Deprecated: All users are auto-approved
         const newUsersWeekly = await prisma.user.count({
             where: { role: "USER", createdAt: { gte: sevenDaysAgo } }
         });
