@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         ]);
 
         // Trigger Achievement tracking
+        await incrementAchievement(userId, "edu_2");
         await incrementAchievement(userId, "bookworm");
 
         // Check for level up (every 500 XP)

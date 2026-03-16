@@ -1,6 +1,7 @@
 import UserSidebar from "@/components/user/UserSidebar";
 import UserTopbar from "@/components/user/UserTopbar";
 import DailyReminderBanner from "@/components/ui/DailyReminderBanner";
+import RelapseIntervention from "@/components/features/RelapseIntervention";
 import { SidebarProvider } from "@/components/layout/SidebarContext";
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
@@ -9,6 +10,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
             <div className="min-h-screen bg-background text-foreground flex">
                 {/* Daily check-in reminder - shows once per session */}
                 <DailyReminderBanner />
+                <RelapseIntervention />
                 {/* Sidebar - Fixes to the left */}
                 <UserSidebar />
 

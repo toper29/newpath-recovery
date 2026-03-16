@@ -116,9 +116,15 @@ export async function POST(request: Request) {
         });
 
         // Trigger Achievement Checks
-        await incrementAchievement(userId, "first_step"); // Steps toward first check-in completion
+        await incrementAchievement(userId, "first_step"); // login 1
+        await incrementAchievement(userId, "login_3");
+        await incrementAchievement(userId, "login_7");
+        await incrementAchievement(userId, "login_14");
+        await incrementAchievement(userId, "login_30");
+
         if (newStreak >= 7) await checkAchievement(userId, "recovery_warrior", newStreak);
         if (newStreak >= 14) await checkAchievement(userId, "life_rebuilder", newStreak);
+        if (newStreak >= 30) await checkAchievement(userId, "streak_30", newStreak);
 
         // Check if milestone achieved
         const milestoneAchieved = STREAK_MILESTONES[newStreak] ? newStreak : null;

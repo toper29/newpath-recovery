@@ -102,8 +102,12 @@ export async function POST(request: Request) {
                 }
             });
 
-            if (gameName === "Quick Math" && currentScore >= minScore) {
-                await incrementAchievement(userId, "logic_ninja");
+            if (currentScore >= minScore) {
+                // Increment more progressive cognitive badges
+                await incrementAchievement(userId, "logic_ninja"); // 10
+                await incrementAchievement(userId, "cog_25");    // 25
+                await incrementAchievement(userId, "cog_50");    // 50
+                await incrementAchievement(userId, "cog_100");   // 100
             }
 
             return [session, user];
