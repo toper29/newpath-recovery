@@ -3,66 +3,16 @@
 import { Check, X, PhoneCall, Plus, FileText, Quote, AlertOctagon } from "lucide-react";
 
 export default function ModeratorDashboard() {
-    const pendingUsers = [
-        { name: "Budi Santoso", email: "budi.s@gmail.com", date: "2023-10-25", status: "Pending" },
-        { name: "Siti Aminah", email: "siti.a@gmail.com", date: "2023-10-24", status: "Approved" },
-    ];
-
-    const highRiskUsers = [
-        { name: "Rian H.", activity: "2 mins ago", score: 95 },
-        { name: "Lina W.", activity: "1 hour ago", score: 60 },
-    ];
-
-    return (
-        <div className="space-y-8">
-            {/* Top Section: Pending Approvals */}
-            <div className="bg-[#0A0F1F] border border-primary/20 rounded-2xl p-6">
-                <div className="flex justify-between items-start mb-6">
-                    <div className="max-w-xl">
-                        <h2 className="text-xl font-bold text-foreground">Pending Approvals</h2>
-                        <p className="text-foreground/50 text-sm mt-1">Review and approve new member registrations for the recovery program.</p>
+            {/* Dashboard Alerts */}
+            <div className="bg-[#110505] border border-red-500/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
+                        <AlertOctagon size={24} />
                     </div>
-                    <button className="text-xs px-4 py-2 border border-foreground/10 rounded-lg hover:bg-foreground/5 transition-all text-foreground/70 font-medium">
-                        Refresh List
-                    </button>
-                </div>
-
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="text-[10px] uppercase text-foreground/40 border-b border-primary/10 tracking-widest font-bold">
-                            <tr>
-                                <th className="pb-4">User Name</th>
-                                <th className="pb-4">Reg. Date</th>
-                                <th className="pb-4">Status</th>
-                                <th className="pb-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-primary/5">
-                            {pendingUsers.map((u, i) => (
-                                <tr key={i}>
-                                    <td className="py-4">
-                                        <p className="font-bold text-foreground">{u.name}</p>
-                                        <p className="text-xs text-foreground/50">{u.email}</p>
-                                    </td>
-                                    <td className="py-4 text-foreground/60 text-xs font-medium">{u.date}</td>
-                                    <td className="py-4">
-                                        <span className={`text-[10px] px-2 py-1 rounded font-bold ${u.status === 'Pending' ? 'bg-orange-500/10 text-orange-500' : 'text-accent'
-                                            }`}>{u.status}</span>
-                                    </td>
-                                    <td className="py-4 text-right">
-                                        {u.status === 'Pending' ? (
-                                            <div className="flex justify-end gap-2">
-                                                <button className="px-4 py-1.5 bg-primary/20 hover:bg-primary/40 border border-primary/50 text-accent font-bold rounded-lg transition-all text-xs">Approve</button>
-                                                <button className="px-4 py-1.5 bg-background border border-foreground/10 text-foreground/50 hover:text-foreground font-bold rounded-lg transition-all text-xs">Deny</button>
-                                            </div>
-                                        ) : (
-                                            <button className="px-4 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-lg border border-red-500/20 transition-all text-xs">Suspend</button>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <div>
+                        <h2 className="text-xl font-bold text-foreground">Moderator Protocol Active</h2>
+                        <p className="text-foreground/50 text-sm mt-1">Sistem deteksi risiko tinggi sedang memantau seluruh aktivitas pengguna.</p>
+                    </div>
                 </div>
             </div>
 

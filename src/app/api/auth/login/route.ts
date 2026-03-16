@@ -74,7 +74,8 @@ export async function POST(request: Request) {
             });
         }
 
-        // Check user status
+        // Check user status (Removed as status field is deprecated)
+        /*
         if (user.role !== 'SUPERADMIN' && user.role !== 'ADMIN') {
             if (user.status === 'PENDING') {
                 return NextResponse.json({ success: false, error: "Akun Anda belum disetujui oleh admin." }, { status: 403 });
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
                 return NextResponse.json({ success: false, error: "Akun Anda telah ditangguhkan." }, { status: 403 });
             }
         }
+        */
 
         // Create JWT
         const secretStr = process.env.JWT_SECRET;

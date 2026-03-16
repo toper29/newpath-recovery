@@ -29,19 +29,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
         const { id } = await context.params;
         const body = await request.json();
-        const { status, membership_status, admin_override } = body;
+        const { membership_status, admin_override } = body;
         
         const updateData: any = {};
-        if (status) {
-            if (!['APPROVED', 'REJECTED', 'SUSPENDED'].includes(status)) {
-                return NextResponse.json({ success: false, error: "Invalid status" }, { status: 400 });
-            }
-            if (status === 'REJECTED') {
-                await prisma.user.delete({ where: { id } });
-                return NextResponse.json({ success: true, message: "User rejected and deleted" });
-            }
-            updateData.status = status;
-        }
 
         if (membership_status) {
             if (!['FREE', 'PREMIUM'].includes(membership_status)) {

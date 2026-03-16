@@ -60,8 +60,7 @@ export async function POST(request: Request) {
                 username: body.username,
                 email: body.email,
                 password: hashedPassword,
-                role: "SUPERADMIN",
-                status: "APPROVED"
+                role: "SUPERADMIN"
             }
         });
 

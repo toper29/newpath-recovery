@@ -8,7 +8,6 @@ interface UserData {
     username: string;
     email: string;
     phone: string;
-    status: string;
     level: number;
     xp: number;
     score?: number;
@@ -22,13 +21,12 @@ interface UserData {
 export default function UserManagementPage() {
     const [users, setUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filterStatus, setFilterStatus] = useState("ALL");
 
     useEffect(() => {
         const fetchUsers = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/admin/users?status=${filterStatus}`);
+                const res = await fetch(`/api/admin/users`);
                 const json = await res.json();
                 if (json.success) setUsers(json.data);
             } catch (err) {
@@ -38,7 +36,7 @@ export default function UserManagementPage() {
             }
         };
         fetchUsers();
-    }, [filterStatus]);
+    }, []);
 
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
@@ -204,8 +202,6 @@ export default function UserManagementPage() {
     };
     const handleAction = async (userId: string, action: string) => {
         let confirmText = `Apakah Anda yakin ingin melakukan aksi ${action} pada pengguna ini?`;
-        if (action === "suspend") confirmText = "Apakah Anda yakin ingin MENANGGUHKAN (suspend) pengguna ini? Mereka tidak akan bisa login.";
-        if (action === "unsuspend") confirmText = "Apakah Anda yakin ingin MENGAKTIPKAN KEMBALI pengguna ini? Mereka akan bisa login dan menggunakan fitur kembali.";
         if (action === "delete") confirmText = "PERINGATAN: Apakah Anda yakin ingin MENGHAPUS PERMANEN pengguna ini beserta seluruh datanya? Aksi ini tidak bisa dibatalkan.";
         if (action === "reset") confirmText = "Apakah Anda yakin ingin RESET PASSWORD pengguna ini ke default?";
         if (action === "grant-premium") confirmText = "Apakah Anda yakin ingin MEMBERIKAN AKSES PREMIUM (30 hari) secara manual kepada pengguna ini?";
@@ -213,19 +209,7 @@ export default function UserManagementPage() {
         if (!confirm(confirmText)) return;
         setLoading(true);
         try {
-            if (action === "suspend") {
-                await fetch(`/api/admin/users/${userId}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ status: "SUSPENDED" })
-                });
-            } else if (action === "unsuspend") {
-                await fetch(`/api/admin/users/${userId}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ status: "APPROVED" })
-                });
-            } else if (action === "grant-premium") {
+            if (action === "grant-premium") {
                 await fetch(`/api/admin/users/${userId}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -246,7 +230,7 @@ export default function UserManagementPage() {
             }
             
             // Refresh users
-            const res = await fetch(`/api/admin/users?status=${filterStatus}`);
+            const res = await fetch(`/api/admin/users`);
             const json = await res.json();
             if (json.success) setUsers(json.data);
         } catch (err) {
@@ -269,21 +253,10 @@ export default function UserManagementPage() {
                     />
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-3 bg-[#0A0F1F] border border-primary/20 rounded-xl text-sm font-medium hover:bg-primary/20 transition-all text-foreground/80">
-                        <Filter size={16} /> Status: All
-                    </button>
                     <button className="flex items-center gap-2 px-6 py-3 bg-primary border border-secondary text-foreground font-bold rounded-xl hover:bg-secondary transition-all shadow-[0_0_15px_rgba(56,189,248,0.1)]">
                         <Users size={16} /> Add New User
                     </button>
                 </div>
-            </div>
-
-            <div className="flex items-center gap-2 mb-4">
-                <span className="text-xs font-bold text-foreground/40 mr-2 uppercase tracking-wider">Quick Filter:</span>
-                <button onClick={() => setFilterStatus('ALL')} className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${filterStatus === 'ALL' ? 'bg-primary text-accent' : 'bg-foreground/5 text-foreground/60 hover:text-foreground'}`}>All Users</button>
-                <button onClick={() => setFilterStatus('PENDING')} className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${filterStatus === 'PENDING' ? 'bg-primary text-accent' : 'bg-foreground/5 text-foreground/60 hover:text-foreground'}`}>Pending</button>
-                <button onClick={() => setFilterStatus('APPROVED')} className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${filterStatus === 'APPROVED' ? 'bg-primary text-accent' : 'bg-foreground/5 text-foreground/60 hover:text-foreground'}`}>Active</button>
-                <button onClick={() => setFilterStatus('SUSPENDED')} className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${filterStatus === 'SUSPENDED' ? 'bg-primary text-accent' : 'bg-foreground/5 text-foreground/60 hover:text-foreground'}`}>Suspended</button>
             </div>
 
             {/* Users Table */}
@@ -297,7 +270,6 @@ export default function UserManagementPage() {
                                 <th className="py-4 px-6 font-bold">Addiction Score</th>
                                 <th className="py-4 px-6 font-bold">Daftar</th>
                                 <th className="py-4 px-6 font-bold">Level / XP</th>
-                                <th className="py-4 px-6 font-bold">Status</th>
                                 <th className="py-4 px-6 font-bold">Last Activity</th>
                                 <th className="py-4 px-6 font-bold text-right">Actions</th>
                             </tr>
@@ -354,15 +326,6 @@ export default function UserManagementPage() {
                                             <span className="text-[10px] text-foreground/50">{user.xp} XP</span>
                                         </div>
                                     </td>
-                                    <td className="py-4 px-6">
-                                        <span className={`text-[11px] px-2.5 py-1 rounded-full border flex items-center gap-1.5 w-fit font-bold ${user.status === 'APPROVED' ? 'border-accent/30 text-accent bg-accent/5' :
-                                                user.status === 'PENDING' ? 'border-orange-500/30 text-orange-500 bg-orange-500/5' :
-                                                    'border-red-500/30 text-red-500 bg-red-500/5'
-                                            }`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${user.status === 'APPROVED' ? 'bg-accent' : user.status === 'PENDING' ? 'bg-orange-500' : 'bg-red-500'}`}></span>
-                                            {user.status}
-                                        </span>
-                                    </td>
                                     <td className="py-4 px-6 text-foreground/70 text-sm">{user.lastActivity || "-"}</td>
                                     <td className="py-4 px-6 text-right">
                                         <div className="relative group inline-block text-left">
@@ -381,16 +344,6 @@ export default function UserManagementPage() {
                                                     {!user.isPremium && (
                                                         <button onClick={() => handleAction(user.id, "grant-premium")} className="w-full flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-yellow-500/10 text-yellow-500 transition-colors">
                                                             <Crown size={14} /> Grant Premium
-                                                        </button>
-                                                    )}
-
-                                                    {user.status === 'SUSPENDED' ? (
-                                                        <button onClick={() => handleAction(user.id, "unsuspend")} className="w-full flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-accent/10 text-accent transition-colors">
-                                                            <CheckCircle size={14} /> Un-Suspend User
-                                                        </button>
-                                                    ) : (
-                                                        <button onClick={() => handleAction(user.id, "suspend")} className="w-full flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-orange-500/10 text-orange-500 transition-colors">
-                                                            <Ban size={14} /> Suspend User
                                                         </button>
                                                     )}
 
@@ -449,10 +402,6 @@ export default function UserManagementPage() {
                             <div className="flex justify-between border-b border-primary/5 pb-2">
                                 <span className="font-bold text-foreground/50">Phone</span>
                                 <span>{selectedUser.phone}</span>
-                            </div>
-                            <div className="flex justify-between border-b border-primary/5 pb-2">
-                                <span className="font-bold text-foreground/50">Status</span>
-                                <span className="font-bold text-accent">{selectedUser.status}</span>
                             </div>
                             <div className="flex justify-between border-b border-primary/5 pb-2">
                                 <span className="font-bold text-foreground/50">Level / XP</span>
