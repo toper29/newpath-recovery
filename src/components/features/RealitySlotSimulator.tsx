@@ -8,8 +8,11 @@ import {
   Info,
   Activity,
   X,
-  ArrowRight
+  ArrowRight,
+  HelpCircle,
+  CheckCircle2
 } from "lucide-react";
+import SlotOnboardingModal from "./SlotOnboardingModal";
 
 // --- Types ---
 
@@ -182,6 +185,8 @@ const SettingsPanel = ({
 export default function RealitySlotSimulator() {
   const [isStarted, setIsStarted] = useState(false);
   const [isSettingsOpenInGame, setIsSettingsOpenInGame] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [forceShowOnboarding, setForceShowOnboarding] = useState(false);
 
   const [config, setConfig] = useState<SimulationConfig>({
     initialBalance: 100000,
@@ -461,6 +466,17 @@ export default function RealitySlotSimulator() {
                 <span className="text-xl sm:text-2xl font-mono font-bold text-emerald-400 tracking-tighter leading-none">{formatIDR(currentBalance)}</span>
              </div>
              <button 
+                onClick={() => {
+                  setForceShowOnboarding(true);
+                  setIsOnboardingOpen(true);
+                }}
+                className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all active:scale-95 flex items-center gap-2 group"
+                title="Info Simulator"
+              >
+                <HelpCircle size={18} className="text-red-500" />
+                <span className="hidden md:block text-[10px] font-black uppercase tracking-widest text-white/50 group-hover:text-white transition-colors">Info Simulator</span>
+             </button>
+             <button 
                 onClick={() => setIsSettingsOpenInGame(true)}
                 className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all active:scale-95"
               >
@@ -643,6 +659,42 @@ export default function RealitySlotSimulator() {
                         </p>
                     </div>
                 </div>
+
+                {/* Educational Center */}
+                <div className="bg-white/5 border border-white/10 p-5 rounded-[2rem] space-y-4">
+                    <div className="space-y-3">
+                        <h3 className="text-[10px] text-white/30 font-black uppercase tracking-widest px-1">Cara Menggunakan</h3>
+                        <div className="space-y-2">
+                            {[
+                                "Atur RTP & amati peluang",
+                                "Jalankan simulasi spin",
+                                "Lihat pola kemenangan acak",
+                                "Sadari realita kerugian"
+                            ].map((text, i) => (
+                                <div key={i} className="flex gap-2 items-start">
+                                    <span className="text-[9px] font-mono text-red-500 bg-red-500/10 w-4 h-4 rounded-full flex items-center justify-center shrink-0 border border-red-500/10">{i+1}</span>
+                                    <p className="text-[10px] text-white/50">{text}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-white/5 space-y-3">
+                        <h3 className="text-[10px] text-white/30 font-black uppercase tracking-widest px-1">Manfaat Simulator</h3>
+                        <div className="grid grid-cols-1 gap-2">
+                            {[
+                                "Pahami desain sistem slot",
+                                "Sadar risiko permainan",
+                                "Perspektif realistis menang"
+                            ].map((text, i) => (
+                                <div key={i} className="flex gap-2 items-center">
+                                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                                    <p className="text-[10px] text-white/50">{text}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -672,6 +724,14 @@ export default function RealitySlotSimulator() {
              </div>
           </div>
         )}
+
+        <SlotOnboardingModal 
+            onClose={() => {
+                setIsOnboardingOpen(false);
+                setForceShowOnboarding(false);
+            }} 
+            forceShow={forceShowOnboarding}
+        />
       </div>
 
       <style jsx global>{`
