@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Award, BookOpen, Calendar, ShieldCheck, Target, TrendingUp, Zap } from "lucide-react";
+import { Award, BookOpen, Calendar, ShieldCheck, Target, TrendingUp, Zap, Crown } from "lucide-react";
 import Link from "next/link";
 
 const LEVEL_NAMES: Record<number, string> = {
@@ -28,6 +28,7 @@ export default function RecoveryOverview() {
         cleanDays: 0, 
         educationCount: 0, 
         journalCount: 0, 
+        isPremium: false,
         loading: true 
     });
 
@@ -49,6 +50,7 @@ export default function RecoveryOverview() {
                         cleanDays: json.data.cleanDays,
                         educationCount: json.data.educationCount || 0,
                         journalCount: json.data.journalCount || 0,
+                        isPremium: json.data.isPremium || false,
                         loading: false
                     });
                 }
@@ -74,8 +76,15 @@ export default function RecoveryOverview() {
 
             {/* Left: Level & Progress */}
             <div className="flex-1 flex flex-col justify-center relative z-10 border-b md:border-b-0 md:border-r border-primary/20 pb-8 md:pb-0 md:pr-8">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold mb-4 uppercase tracking-wider w-fit">
-                    <ShieldCheck size={16} /> Status Pemulihan Aktif
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold mb-0 uppercase tracking-wider w-fit">
+                        <ShieldCheck size={16} /> Status Pemulihan Aktif
+                    </div>
+                    {userData.isPremium && (
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-xs font-bold uppercase tracking-wider w-fit">
+                            <Crown size={14} /> Premium
+                        </div>
+                    )}
                 </div>
                 
                 <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mb-1">

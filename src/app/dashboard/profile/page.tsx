@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Mail, Phone, Lock, Eye, EyeOff, Save, Key, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, Lock, Eye, EyeOff, Save, Key, Loader2, CheckCircle2, AlertCircle, Crown } from "lucide-react";
 
 export default function UserProfilePage() {
     const [userData, setUserData] = useState({ 
         username: "", 
         email: "", 
         phone: "", 
+        membership_status: "FREE",
+        isPremium: false,
+        premium_start_date: null,
         loading: true 
     });
     
@@ -47,6 +50,9 @@ export default function UserProfilePage() {
                         username: json.data.username || "",
                         email: json.data.email || "",
                         phone: json.data.phone || "",
+                        membership_status: json.data.membership_status || "FREE",
+                        isPremium: json.data.isPremium || false,
+                        premium_start_date: json.data.premium_start_date,
                         loading: false
                     };
                     setUserData(data);
@@ -120,6 +126,20 @@ export default function UserProfilePage() {
         }
     };
 
+    const handleUpgrade = async () => {
+        try {
+            const res = await fetch("/api/user/checkout", { method: "POST" });
+            const json = await res.json();
+            if (json.success && json.data.checkoutUrl) {
+                window.location.href = json.data.checkoutUrl;
+            } else {
+                alert(json.error || "Gagal memulai pembayaran");
+            }
+        } catch (err) {
+            alert("Terjadi kesalahan koneksi");
+        }
+    };
+
     if (userData.loading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -136,6 +156,54 @@ export default function UserProfilePage() {
                     Pengaturan <span className="text-accent">Profil</span>
                 </h1>
                 <p className="text-white/40 text-sm mt-2">Kelola informasi akun dan keamanan Anda di sini.</p>
+            </div>
+
+            {/* Membership Status Card */}
+            <div className={`relative overflow-hidden rounded-[2.5rem] p-8 md:p-10 border transition-all duration-500 ${userData.isPremium ? 'bg-gradient-to-br from-yellow-400/10 to-orange-500/10 border-yellow-500/30' : 'bg-white/5 border-white/10'}`}>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+                    <div className="flex items-center gap-6">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl ${userData.isPremium ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-black' : 'bg-white/10 text-white/40'}`}>
+                            {userData.isPremium ? <Crown size={32} /> : <User size={32} />}
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <h2 className="text-2xl font-black text-white uppercase tracking-tight italic">
+                                    {userData.isPremium ? 'Premium Member' : 'Free Member'}
+                                </h2>
+                                {userData.isPremium && (
+                                    <span className="bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">Gold</span>
+                                )}
+                            </div>
+                            <p className="text-white/40 text-sm font-medium">
+                                {userData.isPremium 
+                                    ? `Aktif sejak ${new Date(userData.premium_start_date!).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}` 
+                                    : 'Akses terbatas untuk fitur-fitur pilihan.'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {!userData.isPremium && (
+                        <button 
+                            onClick={handleUpgrade}
+                            className="px-8 py-4 bg-accent hover:bg-accent/80 text-black font-black rounded-2xl transition-all shadow-xl shadow-accent/20 flex items-center gap-2 uppercase tracking-tight text-sm"
+                        >
+                            Support & Upgrade ke Premium
+                        </button>
+                    )}
+                    
+                    {userData.isPremium && (
+                        <div className="flex flex-wrap gap-2">
+                            {['Semua Simulator', '14 Hari Challenge', 'Report Lengkap'].map(tag => (
+                                <span key={tag} className="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-[10px] font-bold rounded-lg uppercase tracking-wide">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                
+                {/* Decorative background elements */}
+                <div className={`absolute top-0 right-0 w-64 h-64 blur-[100px] rounded-full -mr-32 -mt-32 transition-colors ${userData.isPremium ? 'bg-yellow-500/20' : 'bg-white/5'}`} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

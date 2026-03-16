@@ -26,11 +26,15 @@ export async function GET(request: Request) {
         try {
             user = await prisma.user.findUnique({
                 where: { id: userId },
-                select: { xp: true, level: true, username: true, email: true, phone: true, streak: true, longestStreak: true, title: true } as any
+                select: { 
+                    xp: true, level: true, username: true, email: true, phone: true, 
+                    streak: true, longestStreak: true, title: true,
+                    membership_status: true, premium_start_date: true, premium_expiry_date: true, admin_override: true
+                } as any
             });
         } catch (e) {
             console.log("Standard findUnique failed, trying queryRaw fallback for User...");
-            const rawUsers: any[] = await prisma.$queryRaw`SELECT xp, level, username, email, phone, streak, longestStreak, title FROM User WHERE id = ${userId} LIMIT 1`;
+            const rawUsers: any[] = await prisma.$queryRaw`SELECT xp, level, username, email, phone, streak, longestStreak, title, membership_status, premium_start_date, premium_expiry_date, admin_override FROM User WHERE id = ${userId} LIMIT 1`;
             user = rawUsers[0];
         }
 
@@ -69,6 +73,9 @@ export async function GET(request: Request) {
 
         const articleCount = await prisma.article.count();
 
+        // Calculate if user is premium
+        const isPremium = user.membership_status === "PREMIUM" || user.admin_override === true;
+
         return NextResponse.json({ 
             success: true, 
             data: { 
@@ -80,6 +87,11 @@ export async function GET(request: Request) {
                 phone: user.phone,
                 streak: (user as any).streak || 0,
                 longestStreak: (user as any).longestStreak || 0,
+                membership_status: user.membership_status,
+                isPremium: isPremium,
+                premium_start_date: user.premium_start_date,
+                premium_expiry_date: user.premium_expiry_date,
+                admin_override: user.admin_override,
                 hasCheckedInToday: !!todayCheckIn,
                 cleanDays: challenges.length,
                 completedChallengeDays: challenges.map((c: any) => c.dayCompleted),

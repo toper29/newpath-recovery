@@ -15,14 +15,12 @@ model User {
   password            String
   phone               String?
   role                String              @default("USER")
-  status              String              @default("PENDING")
-  xp                  Int                 @default(0)
-  level               Int                 @default(1)
-  title               String?
-  lastActivity        String?
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  failedLoginAttempts Int                 @default(0)
+  membership_status    String              @default("FREE")
+  premium_start_date  DateTime?
+  premium_expiry_date DateTime?
+  donation_status     String?             @default("NONE")
+  admin_override      Boolean             @default(false)
+  failedLoginAttempts  Int                 @default(0)
   lockedUntil         DateTime?
   streak              Int                 @default(0)
   longestStreak       Int                 @default(0)

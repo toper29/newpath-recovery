@@ -184,6 +184,7 @@ export default function RecoveryChallenge14() {
         currentDay: number;
         completionRate: number;
         avgRisk: number;
+        isPremium: boolean;
     }>({ 
         cleanDays: 0, 
         canDoNextTask: true, 
@@ -193,7 +194,8 @@ export default function RecoveryChallenge14() {
         xp: 0,
         currentDay: 1,
         completionRate: 0,
-        avgRisk: 0
+        avgRisk: 0,
+        isPremium: false
     });
 
     // Anti-relapse check-in state
@@ -228,7 +230,8 @@ export default function RecoveryChallenge14() {
                     xp: meJson.data.xp ?? 0,
                     currentDay: progJson.data.currentDay,
                     completionRate: progJson.data.completionRate,
-                    avgRisk: progJson.data.avgRisk
+                    avgRisk: progJson.data.avgRisk,
+                    isPremium: meJson.data.isPremium ?? false
                 });
                 setCheckInDone(meJson.data.hasCheckedInToday ?? false);
             }
@@ -403,6 +406,11 @@ export default function RecoveryChallenge14() {
                     <div className="shrink-0 flex flex-col items-center gap-3">
                         <button 
                             onClick={() => {
+                                if (nextDay > 3 && !userProgress.isPremium) {
+                                    alert("Day 4 ke atas hanya tersedia untuk Member Premium. Silakan upgrade akun Anda di halaman Profil.");
+                                    window.location.href = "/dashboard/profile";
+                                    return;
+                                }
                                 if (!checkInDone) {
                                     setShowCheckIn(true);
                                 } else {

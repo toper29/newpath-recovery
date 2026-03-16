@@ -28,22 +28,41 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         }
 
         const { id } = await context.params;
-        const { status } = await request.json();
+        const body = await request.json();
+        const { status, membership_status, admin_override } = body;
         
-        if (!['APPROVED', 'REJECTED', 'SUSPENDED'].includes(status)) {
-            return NextResponse.json({ success: false, error: "Invalid status" }, { status: 400 });
+        const updateData: any = {};
+        if (status) {
+            if (!['APPROVED', 'REJECTED', 'SUSPENDED'].includes(status)) {
+                return NextResponse.json({ success: false, error: "Invalid status" }, { status: 400 });
+            }
+            if (status === 'REJECTED') {
+                await prisma.user.delete({ where: { id } });
+                return NextResponse.json({ success: true, message: "User rejected and deleted" });
+            }
+            updateData.status = status;
         }
 
-        // if REJECTED, we can either delete or hard set to REJECTED. 
-        // We'll delete for simplicity of a "Reject" action from the pending queue.
-        if (status === 'REJECTED') {
-            await prisma.user.delete({ where: { id } });
-            return NextResponse.json({ success: true, message: "User rejected and deleted" });
+        if (membership_status) {
+            if (!['FREE', 'PREMIUM'].includes(membership_status)) {
+                return NextResponse.json({ success: false, error: "Invalid membership status" }, { status: 400 });
+            }
+            updateData.membership_status = membership_status;
+            if (membership_status === 'PREMIUM') {
+                const expiryDate = new Date();
+                expiryDate.setDate(expiryDate.getDate() + 30); // 30 days for manual grant
+                updateData.premium_expiry_date = expiryDate;
+                updateData.premium_start_date = new Date();
+            }
+        }
+
+        if (admin_override !== undefined) {
+            updateData.admin_override = admin_override;
         }
 
         const updatedUser = await prisma.user.update({
             where: { id },
-            data: { status }
+            data: updateData
         });
 
         return NextResponse.json({ success: true, data: updatedUser });

@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create user with PENDING status
+        // Create user with ACTIVE status (simplified flow)
         const user = await prisma.user.create({
             data: {
                 username,
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
                 password: hashedPassword,
                 phone: phone || null,
                 role: "USER",
-                status: "PENDING", // Require admin approval
+                membership_status: "FREE",
                 xp: 0,
                 level: 1
             }
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             success: true,
-            message: "Registration successful. Please wait for admin approval.",
+            message: "Registration successful. You can now log in.",
             data: { username: user.username, email: user.email }
         });
 

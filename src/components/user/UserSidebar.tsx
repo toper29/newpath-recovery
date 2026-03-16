@@ -20,42 +20,45 @@ import {
     Award,
     BrainCircuit,
     ShieldAlert,
-    X
+    X,
+    Lock,
+    Crown
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const userMenus = [
     { 
         section: "Main",
         items: [
-            { name: "Dashboard", href: "/dashboard", icon: Home },
-            { name: "Recovery Journey", href: "/dashboard/recovery-journey", icon: Award },
-            { name: "Profile", href: "/dashboard/profile", icon: User },
+            { name: "Dashboard", href: "/dashboard", icon: Home, isPremium: false },
+            { name: "Recovery Journey", href: "/dashboard/recovery-journey", icon: Award, isPremium: false },
+            { name: "Profile", href: "/dashboard/profile", icon: User, isPremium: false },
         ]
     },
     {
         section: "Aktivitas Pemulihan",
         items: [
-            { name: "Recovery Challenge", href: "/dashboard/recovery-challenge", icon: Calendar },
-            { name: "Pelatihan Kognitif", href: "/dashboard/pelatihan", icon: BrainCircuit },
-            { name: "Edukasi & Tips", href: "/dashboard/edukasi", icon: BookOpen },
-            { name: "Addiction Test", href: "/dashboard/addiction-test", icon: ClipboardCheck },
+            { name: "Recovery Challenge", href: "/dashboard/recovery-challenge", icon: Calendar, isPremium: true },
+            { name: "Pelatihan Kognitif", href: "/dashboard/pelatihan", icon: BrainCircuit, isPremium: false },
+            { name: "Edukasi & Tips", href: "/dashboard/edukasi", icon: BookOpen, isPremium: false },
+            { name: "Addiction Test", href: "/dashboard/addiction-test", icon: ClipboardCheck, isPremium: false },
         ]
     },
     {
         section: "Simulator & Pelatihan",
         items: [
-            { name: "Reality Slot Simulator", href: "/dashboard/reality-simulator", icon: Target },
-            { name: "Slot Trap Simulator", href: "/dashboard/slot-trap", icon: Cpu },
-            { name: "Deposit Awareness", href: "/dashboard/deposit-awareness", icon: PiggyBank },
-            { name: "Your Money Talking", href: "/dashboard/money-talking", icon: MessageCircle },
+            { name: "Reality Slot Simulator", href: "/dashboard/reality-simulator", icon: Target, isPremium: true },
+            { name: "Slot Trap Simulator", href: "/dashboard/slot-trap", icon: Cpu, isPremium: true },
+            { name: "Deposit Awareness", href: "/dashboard/deposit-awareness", icon: PiggyBank, isPremium: true },
+            { name: "Your Money Talking", href: "/dashboard/money-talking", icon: MessageCircle, isPremium: true },
         ]
     },
     {
         section: "Bantuan & Krisis",
         items: [
-            { name: "Emergency Wheel", href: "/dashboard/emergency-wheel", icon: AlertTriangle },
-            { name: "Emergency Reality Call", href: "/dashboard/reality-call", icon: PhoneCall },
-            { name: "Laporkan Situs Judi", href: "/dashboard/report-site", icon: ShieldAlert },
+            { name: "Emergency Wheel", href: "/dashboard/emergency-wheel", icon: AlertTriangle, isPremium: false },
+            { name: "Emergency Reality Call", href: "/dashboard/reality-call", icon: PhoneCall, isPremium: false },
+            { name: "Laporkan Situs Judi", href: "/dashboard/report-site", icon: ShieldAlert, isPremium: false },
         ]
     }
 ];
@@ -63,6 +66,17 @@ export const userMenus = [
 export default function UserSidebar() {
     const pathname = usePathname();
     const { isOpen, close } = useSidebar();
+    const [userData, setUserData] = useState<any>(null);
+
+    useEffect(() => {
+        fetch("/api/user/me")
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) setUserData(json.data);
+            });
+    }, []);
+
+    const isPremiumUser = userData?.isPremium || false;
 
     return (
         <>
@@ -99,18 +113,25 @@ export default function UserSidebar() {
                             <div className="space-y-1">
                                 {section.items.map((menu) => {
                                     const isActive = pathname === menu.href;
+                                    const isLocked = menu.isPremium && !isPremiumUser;
+
                                     return (
                                         <Link
                                             key={menu.name}
-                                            href={menu.href}
-                                            onClick={close}
-                                            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive
+                                            href={isLocked ? "#" : menu.href}
+                                            onClick={isLocked ? undefined : close}
+                                            className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive
                                                 ? "bg-primary/20 text-accent border border-primary/30 shadow-[0_0_15px_rgba(56,189,248,0.05)]"
-                                                : "text-foreground/50 hover:text-foreground hover:bg-foreground/5"
+                                                : isLocked 
+                                                    ? "text-foreground/30 cursor-not-allowed"
+                                                    : "text-foreground/50 hover:text-foreground hover:bg-foreground/5"
                                                 }`}
                                         >
-                                            <menu.icon size={16} className={isActive ? "text-accent" : "text-foreground/30"} />
-                                            {menu.name}
+                                            <div className="flex items-center gap-3">
+                                                <menu.icon size={16} className={isActive ? "text-accent" : (isLocked ? "text-foreground/20" : "text-foreground/30")} />
+                                                {menu.name}
+                                            </div>
+                                            {isLocked && <Lock size={12} className="text-foreground/20" />}
                                         </Link>
                                     );
                                 })}
@@ -120,20 +141,39 @@ export default function UserSidebar() {
                 </nav>
 
                 <div className="p-6 border-t border-primary/20 bg-background/50">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center font-bold text-sm">
-                                AN
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm ${isPremiumUser ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-black' : 'bg-primary'}`}>
+                                {userData?.username?.[0].toUpperCase() || "U"}
                             </div>
-                            <div>
-                                <p className="text-sm font-bold">Anonymous</p>
-                                <p className="text-[10px] text-foreground/50">User</p>
+                            <div className="overflow-hidden">
+                                <p className="text-sm font-bold truncate max-w-[100px]">{userData?.username || "Loading..."}</p>
+                                <div className="flex items-center gap-1.5">
+                                    {isPremiumUser ? (
+                                        <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-tighter text-yellow-500">
+                                            <Crown size={8} /> Premium
+                                        </span>
+                                    ) : (
+                                        <span className="text-[8px] font-black uppercase tracking-tighter text-foreground/40">
+                                            Free Member
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <Link href="/" className="text-foreground/50 hover:text-red-400 transition-colors">
                             <LogOut size={18} />
                         </Link>
                     </div>
+                    
+                    {!isPremiumUser && (
+                        <Link 
+                            href="/dashboard/profile"
+                            className="flex items-center justify-center gap-2 w-full py-2 bg-accent/10 border border-accent/20 rounded-lg text-[10px] font-black text-accent uppercase tracking-widest hover:bg-accent/20 transition-all"
+                        >
+                            Upgrade Account
+                        </Link>
+                    )}
                 </div>
             </div>
         </>

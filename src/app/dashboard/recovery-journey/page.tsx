@@ -87,6 +87,7 @@ export default function RecoveryJourneyPage() {
         level: 1, 
         cleanDays: 0, 
         educationCount: 0,
+        isPremium: false,
         loading: true 
     });
     const [achievements, setAchievements] = useState<any[]>([]);
@@ -107,6 +108,7 @@ export default function RecoveryJourneyPage() {
                         level: meJson.data.level,
                         cleanDays: meJson.data.cleanDays,
                         educationCount: meJson.data.educationCount || 0,
+                        isPremium: meJson.data.isPremium || false,
                         loading: false
                     });
                 }
@@ -149,6 +151,9 @@ export default function RecoveryJourneyPage() {
                 <div className="space-y-16 relative z-10">
                     {STAGES.map((stage, index) => {
                         const isUnlocked = index <= currentStageIndex;
+                        const isPremiumStage = index >= 2; // Stage 3 is index 2
+                        const isLockedByPlan = isPremiumStage && !userData.isPremium;
+                        const effectiveUnlocked = isUnlocked && !isLockedByPlan;
                         const isCurrent = index === currentStageIndex;
                         const Icon = stage.icon;
 
@@ -163,9 +168,11 @@ export default function RecoveryJourneyPage() {
                                 {/* Level Icon / Node */}
                                 <div className="shrink-0 relative">
                                     <div className={`w-20 h-20 rounded-[1.5rem] flex items-center justify-center transition-all duration-500 ${
-                                        isUnlocked 
-                                            ? `bg-gradient-to-br ${stage.color} ${stage.shadow} text-white scale-110 shadow-xl` 
-                                            : "bg-[#0A0F1F] border border-white/10 text-white/20"
+                                        isLockedByPlan
+                                            ? "bg-black/40 border border-white/5 text-white/10"
+                                            : effectiveUnlocked 
+                                                ? `bg-gradient-to-br ${stage.color} ${stage.shadow} text-white scale-110 shadow-xl` 
+                                                : "bg-[#0A0F1F] border border-white/10 text-white/20"
                                     }`}>
                                         <Icon size={32} />
                                     </div>
@@ -193,15 +200,24 @@ export default function RecoveryJourneyPage() {
                                         <div className="relative z-10">
                                             <div className="flex items-center justify-between mb-4">
                                                 <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full ${
-                                                    isUnlocked ? "bg-white/10 text-white" : "bg-white/5 text-white/20"
+                                                    effectiveUnlocked ? "bg-white/10 text-white" : "bg-white/5 text-white/20"
                                                 }`}>
                                                     {stage.label}
                                                 </span>
-                                                {!isUnlocked && <Lock size={14} className="text-white/20" />}
+                                                {(isLockedByPlan || !isUnlocked) && <Lock size={14} className="text-white/20" />}
                                             </div>
                                             
-                                            <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">{stage.title}</h3>
-                                            <p className="text-white/40 text-sm font-medium mb-6">{stage.subtitle}</p>
+                                            {isLockedByPlan ? (
+                                                <div className="space-y-2">
+                                                    <h3 className="text-xl font-black text-white/30 uppercase italic tracking-tighter mb-2">{stage.title}</h3>
+                                                    <p className="text-accent text-[10px] font-bold uppercase tracking-widest">Premium Feature</p>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">{stage.title}</h3>
+                                                    <p className="text-white/40 text-sm font-medium mb-6">{stage.subtitle}</p>
+                                                </>
+                                            )}
 
                                             {/* Milestone Checklist */}
                                             <div className="space-y-3">

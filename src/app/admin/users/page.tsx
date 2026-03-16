@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Filter, AlertTriangle, Users, MoreVertical, Eye, Ban, Trash2, KeyRound, Loader2, CheckCircle, FileText, Download } from "lucide-react";
+import { Search, Filter, AlertTriangle, Users, MoreVertical, Eye, Ban, Trash2, KeyRound, Loader2, CheckCircle, FileText, Download, Crown } from "lucide-react";
 
 interface UserData {
     id: string;
@@ -15,6 +15,8 @@ interface UserData {
     createdAt: string;
     lastActivity: string;
     latestScore: number;
+    membership_status: string;
+    isPremium: boolean;
 }
 
 export default function UserManagementPage() {
@@ -206,6 +208,7 @@ export default function UserManagementPage() {
         if (action === "unsuspend") confirmText = "Apakah Anda yakin ingin MENGAKTIPKAN KEMBALI pengguna ini? Mereka akan bisa login dan menggunakan fitur kembali.";
         if (action === "delete") confirmText = "PERINGATAN: Apakah Anda yakin ingin MENGHAPUS PERMANEN pengguna ini beserta seluruh datanya? Aksi ini tidak bisa dibatalkan.";
         if (action === "reset") confirmText = "Apakah Anda yakin ingin RESET PASSWORD pengguna ini ke default?";
+        if (action === "grant-premium") confirmText = "Apakah Anda yakin ingin MEMBERIKAN AKSES PREMIUM (30 hari) secara manual kepada pengguna ini?";
 
         if (!confirm(confirmText)) return;
         setLoading(true);
@@ -221,6 +224,12 @@ export default function UserManagementPage() {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ status: "APPROVED" })
+                });
+            } else if (action === "grant-premium") {
+                await fetch(`/api/admin/users/${userId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ membership_status: "PREMIUM", admin_override: true })
                 });
             } else if (action === "delete") {
                 await fetch(`/api/admin/users/${userId}`, {
@@ -337,7 +346,10 @@ export default function UserManagementPage() {
                                         {new Date(user.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </td>
                                     <td className="py-4 px-6">
-                                        <div className="flex flex-col">
+                                        <div className="flex flex-col gap-1">
+                                             <span className={`text-[10px] px-2 py-0.5 rounded-full border w-fit font-black mb-1 ${user.membership_status === 'PREMIUM' ? 'border-yellow-500/30 text-yellow-500 bg-yellow-500/5' : 'border-white/10 text-white/30 bg-white/5'}`}>
+                                                {user.membership_status}
+                                            </span>
                                             <span className="font-bold text-accent text-sm">Lv {user.level}</span>
                                             <span className="text-[10px] text-foreground/50">{user.xp} XP</span>
                                         </div>
@@ -366,6 +378,12 @@ export default function UserManagementPage() {
                                                         <Eye size={14} className="text-accent" /> View Details
                                                     </button>
                                                     
+                                                    {!user.isPremium && (
+                                                        <button onClick={() => handleAction(user.id, "grant-premium")} className="w-full flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-yellow-500/10 text-yellow-500 transition-colors">
+                                                            <Crown size={14} /> Grant Premium
+                                                        </button>
+                                                    )}
+
                                                     {user.status === 'SUSPENDED' ? (
                                                         <button onClick={() => handleAction(user.id, "unsuspend")} className="w-full flex items-center gap-2 px-4 py-2.5 text-xs hover:bg-accent/10 text-accent transition-colors">
                                                             <CheckCircle size={14} /> Un-Suspend User
