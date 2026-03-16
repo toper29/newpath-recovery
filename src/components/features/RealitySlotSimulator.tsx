@@ -184,9 +184,13 @@ const SettingsPanel = ({
 
 export default function RealitySlotSimulator() {
   const [isStarted, setIsStarted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [isSettingsOpenInGame, setIsSettingsOpenInGame] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [forceShowOnboarding, setForceShowOnboarding] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [isAutoSpinActive, setIsAutoSpinActive] = useState(false);
+  const [autoSpinRemaining, setAutoSpinRemaining] = useState(0);
 
   const [config, setConfig] = useState<SimulationConfig>({
     initialBalance: 100000,
@@ -197,29 +201,15 @@ export default function RealitySlotSimulator() {
     scatterMultiplier: 1.5,
   });
 
-  const [isSpinning, setIsSpinning] = useState(false);
-  // Initialize with a static grid to avoid hydration mismatch
   const [currentGrid, setCurrentGrid] = useState<SymbolType[][]>(() => 
     Array(6).fill(null).map(() => Array(5).fill('DIAMOND'))
   );
-  
-  // Initialize grid and set mounted status
-  useEffect(() => {
-    setIsMounted(true);
-    const randomGrid = Array(6).fill(null).map(() => 
-      Array(5).fill(null).map(() => SYMBOL_LIST[Math.floor(Math.random() * SYMBOL_LIST.length)])
-    );
-    setCurrentGrid(randomGrid);
-  }, []);
   
   const [history, setHistory] = useState<SpinResult[]>([]);
   const [currentBalance, setCurrentBalance] = useState(100000);
   const [lastWinAmount, setLastWinAmount] = useState(0);
   const [winningSymbols, setWinningSymbols] = useState<SymbolType[]>([]);
   const [winningCoords, setWinningCoords] = useState<{ c: number; r: number }[]>([]);
-  const [autoSpinRemaining, setAutoSpinRemaining] = useState(0);
-  const [isAutoSpinActive, setIsAutoSpinActive] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     totalWagered: 0,
     totalWon: 0,
@@ -246,6 +236,15 @@ export default function RealitySlotSimulator() {
 
   const getRandomSymbol = useCallback(() => {
     return SYMBOL_LIST[Math.floor(Math.random() * SYMBOL_LIST.length)];
+  }, []);
+
+  // Initialize grid and set mounted status
+  useEffect(() => {
+    setIsMounted(true);
+    const randomGrid = Array(6).fill(null).map(() => 
+      Array(5).fill(null).map(() => SYMBOL_LIST[Math.floor(Math.random() * SYMBOL_LIST.length)])
+    );
+    setCurrentGrid(randomGrid);
   }, []);
 
   const handleSpin = async () => {
