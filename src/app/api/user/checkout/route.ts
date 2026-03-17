@@ -43,7 +43,15 @@ export async function POST(request: Request) {
 
         // 4. Construct Pakasir URL
         const projectSlug = process.env.PAKASIR_PROJECT_SLUG || "newpath";
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : '');
+        
+        // Use environment variable or fallback to request host for absolute URL
+        let baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+        if (!baseUrl) {
+            const host = request.headers.get("host");
+            const protocol = host?.includes("localhost") ? "http" : "https";
+            baseUrl = `${protocol}://${host}`;
+        }
+        
         const callbackUrl = `${baseUrl}/payments/verify?order_id=${order_id}`;
         
         const checkoutUrl = `https://app.pakasir.com/pay/${projectSlug}/${amount}?order_id=${order_id}&redirect=${encodeURIComponent(callbackUrl)}&qris_only=1`;
