@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Trophy, ShieldAlert, Menu, X, BrainCircuit } from "lucide-react";
+import { Bell, Trophy, ShieldAlert, Menu, X, BrainCircuit, Crown } from "lucide-react";
 import { useSidebar } from "../layout/SidebarContext";
 import NotificationBell from "../ui/NotificationBell";
 
 export default function UserTopbar() {
     const pathname = usePathname();
     const { toggle, isOpen } = useSidebar();
-    const [userData, setUserData] = useState({ xp: 0, level: 1, cleanDays: 0, loading: true });
+    const [userData, setUserData] = useState({ xp: 0, level: 1, cleanDays: 0, isPremium: false, loading: true });
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -22,6 +22,7 @@ export default function UserTopbar() {
                         xp: json.data.xp,
                         level: json.data.level,
                         cleanDays: json.data.cleanDays,
+                        isPremium: json.data.isPremium,
                         loading: false
                     });
                 } else {
@@ -68,6 +69,11 @@ export default function UserTopbar() {
                 <div className="flex items-center gap-2 md:gap-3">
                     {!userData.loading && (
                         <>
+                            {userData.isPremium && (
+                                <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                                    <Crown size={14} /> <span className="hidden xs:inline">Premium</span>
+                                </div>
+                            )}
                             <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-[0_0_10px_rgba(59,130,246,0.1)]">
                                 <BrainCircuit size={14} /> <span className="hidden xs:inline">Lvl</span> {userData.level} <span className="hidden sm:inline text-blue-400/60 ml-1">{userData.xp}/{userData.level * 500} XP</span>
                             </div>

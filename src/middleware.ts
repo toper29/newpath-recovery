@@ -80,6 +80,21 @@ export async function middleware(request: NextRequest) {
 
             const { payload } = await jwtVerify(token, secret);
             const userRole = payload.role as string;
+            const membershipStatus = payload.membership_status as string;
+
+            // Route list requiring premium
+            const premiumRoutes = ['/dashboard/pelatihan/grid-memory', '/dashboard/pelatihan/sequence-memory'];
+            const isPremiumRoute = premiumRoutes.some(p => path.startsWith(p));
+
+            if (isPremiumRoute && membershipStatus !== 'premium' && userRole !== 'SUPERADMIN' && userRole !== 'ADMIN') {
+                 if (path.startsWith('/api')) {
+                    return new NextResponse(
+                        JSON.stringify({ success: false, error: 'Pro: Upgrade to premium to access this feature' }),
+                        { status: 403, headers: { 'Content-Type': 'application/json' } }
+                    );
+                }
+                return NextResponse.redirect(new URL('/dashboard/membership', request.url));
+            }
 
             // Role-based access control for /admin and /api/admin
             if (path.startsWith('/admin') || path.startsWith('/api/admin')) {

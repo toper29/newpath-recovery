@@ -4,9 +4,7 @@ import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 /**
- * Endpoint to initiate DOKU Payment.
- * For now, this is a mock implementation that returns a fake checkout URL.
- * In production, this would call the DOKU API to get a real session.
+ * Endpoint to initiate Pakasir Payment.
  */
 export async function POST(request: Request) {
     try {
@@ -22,21 +20,41 @@ export async function POST(request: Request) {
         const { payload } = await jwtVerify(token, secret);
         const userId = payload.userId as string;
 
-        // Create a pending donation record if needed (optional)
-        await prisma.user.update({
-            where: { id: userId },
-            data: { donation_status: "PENDING" }
+        // 1. Get Premium Price from SystemSetting (dynamic)
+        const priceSetting = await prisma.systemSetting.findUnique({
+            where: { key: "PREMIUM_PRICE" }
+        });
+        const amount = priceSetting ? parseInt(priceSetting.value) : 50000;
+
+        // 2. Generate unique order_id
+        const timestamp = Date.now();
+        const shortUserId = userId.substring(0, 8);
+        const order_id = `NP-${shortUserId}-${timestamp}`;
+
+        // 3. Create pending transaction record
+        await (prisma as any).transaction.create({
+            data: {
+                userId,
+                order_id,
+                amount,
+                status: "pending"
+            }
         });
 
-        // Generate a mock DOKU checkout URL
-        // In reality, you'd call DOKU here and get a response
-        const checkoutUrl = `https://sandbox.doku.com/checkout/mock?invoice=${Date.now()}&user=${userId}`;
+        // 4. Construct Pakasir URL
+        const projectSlug = process.env.PAKASIR_PROJECT_SLUG || "newpath";
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : '');
+        const callbackUrl = `${baseUrl}/payments/verify?order_id=${order_id}`;
+        
+        const checkoutUrl = `https://app.pakasir.com/pay/${projectSlug}/${amount}?order_id=${order_id}&redirect=${encodeURIComponent(callbackUrl)}&qris_only=1`;
 
         return NextResponse.json({ 
             success: true, 
             data: { 
                 checkoutUrl,
-                message: "Proceed to payment" 
+                order_id,
+                amount,
+                message: "Proceed to premium upgrade" 
             } 
         });
     } catch (error: any) {

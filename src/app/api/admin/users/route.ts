@@ -59,7 +59,7 @@ export async function GET(request: Request) {
             lastActivity: user.lastActivity || "Belum ada aktivitas",
             latestScore: user.addictionTests.length > 0 ? user.addictionTests[0].score : 0,
             membership_status: user.membership_status,
-            isPremium: user.membership_status === "PREMIUM" || (user.premium_expiry_date && new Date(user.premium_expiry_date) > new Date())
+            isPremium: user.membership_status === "premium" || user.is_admin_override === true
         }));
 
         return NextResponse.json({ 

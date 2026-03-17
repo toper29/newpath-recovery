@@ -204,7 +204,7 @@ export default function UserManagementPage() {
         let confirmText = `Apakah Anda yakin ingin melakukan aksi ${action} pada pengguna ini?`;
         if (action === "delete") confirmText = "PERINGATAN: Apakah Anda yakin ingin MENGHAPUS PERMANEN pengguna ini beserta seluruh datanya? Aksi ini tidak bisa dibatalkan.";
         if (action === "reset") confirmText = "Apakah Anda yakin ingin RESET PASSWORD pengguna ini ke default?";
-        if (action === "grant-premium") confirmText = "Apakah Anda yakin ingin MEMBERIKAN AKSES PREMIUM (30 hari) secara manual kepada pengguna ini?";
+        if (action === "grant-premium") confirmText = "Apakah Anda yakin ingin MEMBERIKAN AKSES PREMIUM LIFETIME secara manual kepada pengguna ini?";
 
         if (!confirm(confirmText)) return;
         setLoading(true);
@@ -213,7 +213,7 @@ export default function UserManagementPage() {
                 await fetch(`/api/admin/users/${userId}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ membership_status: "PREMIUM", admin_override: true })
+                    body: JSON.stringify({ membership_status: "premium", admin_override: true })
                 });
             } else if (action === "delete") {
                 await fetch(`/api/admin/users/${userId}`, {
@@ -319,8 +319,8 @@ export default function UserManagementPage() {
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex flex-col gap-1">
-                                             <span className={`text-[10px] px-2 py-0.5 rounded-full border w-fit font-black mb-1 ${user.membership_status === 'PREMIUM' ? 'border-yellow-500/30 text-yellow-500 bg-yellow-500/5' : 'border-white/10 text-white/30 bg-white/5'}`}>
-                                                {user.membership_status}
+                                             <span className={`text-[10px] px-2 py-0.5 rounded-full border w-fit font-black mb-1 ${user.membership_status === 'premium' ? 'border-yellow-500/30 text-yellow-500 bg-yellow-500/5' : 'border-white/10 text-white/30 bg-white/5'}`}>
+                                                {user.membership_status.toUpperCase()}
                                             </span>
                                             <span className="font-bold text-accent text-sm">Lv {user.level}</span>
                                             <span className="text-[10px] text-foreground/50">{user.xp} XP</span>

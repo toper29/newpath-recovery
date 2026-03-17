@@ -91,7 +91,12 @@ export async function POST(request: Request) {
         if (!secretStr) throw new Error("JWT_SECRET is not configured");
         const secret = new TextEncoder().encode(secretStr);
 
-        const token = await new SignJWT({ userId: user.id, email: user.email, role: user.role })
+        const token = await new SignJWT({ 
+            userId: user.id, 
+            email: user.email, 
+            role: user.role,
+            membership_status: user.membership_status 
+        })
             .setProtectedHeader({ alg: "HS256" })
             .setIssuedAt()
             .setExpirationTime("7d")

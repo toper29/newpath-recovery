@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
@@ -34,20 +34,22 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
         const updateData: any = {};
 
         if (membership_status) {
-            if (!['FREE', 'PREMIUM'].includes(membership_status)) {
+            const status = membership_status.toLowerCase();
+            if (!['free', 'premium'].includes(status)) {
                 return NextResponse.json({ success: false, error: "Invalid membership status" }, { status: 400 });
             }
-            updateData.membership_status = membership_status;
-            if (membership_status === 'PREMIUM') {
-                const expiryDate = new Date();
-                expiryDate.setDate(expiryDate.getDate() + 30); // 30 days for manual grant
-                updateData.premium_expiry_date = expiryDate;
-                updateData.premium_start_date = new Date();
+            updateData.membership_status = status;
+            if (status === 'premium') {
+                updateData.premium_type = 'lifetime';
+                updateData.premium_activated_at = new Date();
+            } else {
+                updateData.premium_activated_at = null;
+                updateData.premium_type = null;
             }
         }
 
         if (admin_override !== undefined) {
-            updateData.admin_override = admin_override;
+            updateData.is_admin_override = admin_override;
         }
 
         const updatedUser = await prisma.user.update({

@@ -32,6 +32,7 @@ export const userMenus = [
         items: [
             { name: "Dashboard", href: "/dashboard", icon: Home, isPremium: false },
             { name: "Recovery Journey", href: "/dashboard/recovery-journey", icon: Award, isPremium: false },
+            { name: "Membership", href: "/dashboard/membership", icon: Crown, isPremium: false },
             { name: "Profile", href: "/dashboard/profile", icon: User, isPremium: false },
         ]
     },
@@ -176,7 +177,7 @@ export default function UserSidebar() {
                     
                     {!isPremiumUser && (
                         <Link 
-                            href="/dashboard/profile"
+                            href="/dashboard/membership"
                             className="flex items-center justify-center gap-2 w-full py-2 bg-accent/10 border border-accent/20 rounded-lg text-[10px] font-black text-accent uppercase tracking-widest hover:bg-accent/20 transition-all"
                         >
                             Upgrade Account

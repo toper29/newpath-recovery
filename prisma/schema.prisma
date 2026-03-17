@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -15,11 +14,11 @@ model User {
   password            String
   phone               String?
   role                String              @default("USER")
-  membership_status   String              @default("FREE")
-  premium_start_date  DateTime?
-  premium_expiry_date DateTime?
+  membership_status   String              @default("free")
+  premium_type        String?             @default("lifetime")
+  premium_activated_at DateTime?
   donation_status     String?             @default("NONE")
-  admin_override      Boolean             @default(false)
+  is_admin_override   Boolean             @default(false)
   failedLoginAttempts Int                 @default(0)
   lockedUntil         DateTime?
   xp                  Int                 @default(0)
@@ -40,6 +39,7 @@ model User {
   lastActivity        String?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @default(now()) @updatedAt
+  transactions        Transaction[]
 
   @@index([email])
 }
@@ -247,7 +247,7 @@ model Notification {
 model UserPreference {
   id               String   @id @default(uuid())
   userId           String   @unique
-  hideExplanations String[]
+  hideExplanations String? // Store as JSON or comma-separated string for SQLite compatibility
   updatedAt        DateTime @default(now()) @updatedAt
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -263,4 +263,18 @@ model AdminLog {
   userAgent String?
   path      String?
   createdAt DateTime @default(now())
+}
+
+model Transaction {
+  id             String   @id @default(uuid())
+  userId         String
+  order_id       String   @unique
+  amount         Int
+  status         String   @default("pending") // pending, completed, failed
+  payment_method String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

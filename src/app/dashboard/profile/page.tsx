@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { User, Mail, Phone, Lock, Eye, EyeOff, Save, Key, Loader2, CheckCircle2, AlertCircle, Crown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function UserProfilePage() {
+    const router = useRouter();
     const [userData, setUserData] = useState({ 
         username: "", 
         email: "", 
         phone: "", 
-        membership_status: "FREE",
+        membership_status: "free",
         isPremium: false,
-        premium_start_date: null,
+        premium_activated_at: null,
         loading: true 
     });
     
@@ -50,9 +52,9 @@ export default function UserProfilePage() {
                         username: json.data.username || "",
                         email: json.data.email || "",
                         phone: json.data.phone || "",
-                        membership_status: json.data.membership_status || "FREE",
+                        membership_status: json.data.membership_status || "free",
                         isPremium: json.data.isPremium || false,
-                        premium_start_date: json.data.premium_start_date,
+                        premium_activated_at: json.data.premium_activated_at,
                         loading: false
                     };
                     setUserData(data);
@@ -126,18 +128,8 @@ export default function UserProfilePage() {
         }
     };
 
-    const handleUpgrade = async () => {
-        try {
-            const res = await fetch("/api/user/checkout", { method: "POST" });
-            const json = await res.json();
-            if (json.success && json.data.checkoutUrl) {
-                window.location.href = json.data.checkoutUrl;
-            } else {
-                alert(json.error || "Gagal memulai pembayaran");
-            }
-        } catch (err) {
-            alert("Terjadi kesalahan koneksi");
-        }
+    const handleUpgrade = () => {
+        router.push("/dashboard/membership");
     };
 
     if (userData.loading) {
@@ -176,7 +168,7 @@ export default function UserProfilePage() {
                             </div>
                             <p className="text-white/40 text-sm font-medium">
                                 {userData.isPremium 
-                                    ? `Aktif sejak ${new Date(userData.premium_start_date!).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}` 
+                                    ? `Aktif sejak ${new Date(userData.premium_activated_at!).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}` 
                                     : 'Akses terbatas untuk fitur-fitur pilihan.'}
                             </p>
                         </div>
