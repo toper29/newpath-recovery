@@ -5,9 +5,18 @@ import { prisma } from "@/lib/db";
  * Webhook endpoint for Pakasir payment notifications.
  * WAJIB & KRITIS: Validasi data sebelum memproses status premium.
  */
+export async function GET() {
+    return NextResponse.json({ 
+        success: true, 
+        message: "Pakasir Webhook is active. Please use POST for notifications." 
+    });
+}
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();
+        console.log(`[PAKASIR WEBHOOK] Raw Body:`, JSON.stringify(body));
+        
         const { amount, order_id, status, payment_method, project } = body;
 
         console.log(`[PAKASIR WEBHOOK] Received:`, body);
