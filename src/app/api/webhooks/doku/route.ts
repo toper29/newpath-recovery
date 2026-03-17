@@ -17,16 +17,13 @@ export async function POST(request: Request) {
         // if (!isValid) return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
 
         if (status === "SUCCESS") {
-            const expiryDate = new Date();
-            expiryDate.setFullYear(expiryDate.getFullYear() + 1); // 1 year membership
-
-            await prisma.user.update({
+            await (prisma.user as any).update({
                 where: { id: user_id },
                 data: {
-                    membership_status: "PREMIUM",
+                    membership_status: "premium",
                     donation_status: "SUCCESS",
-                    premium_start_date: new Date(),
-                    premium_expiry_date: expiryDate
+                    premium_activated_at: new Date(),
+                    premium_type: "lifetime"
                 }
             });
 
