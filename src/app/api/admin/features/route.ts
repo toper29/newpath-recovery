@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
             }
         });
 
+        revalidatePath("/");
         return NextResponse.json({ success: true, data: newFeature });
     } catch (error: any) {
         console.error("Features API POST Error:", error);

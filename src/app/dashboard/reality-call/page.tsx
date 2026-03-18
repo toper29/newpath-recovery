@@ -5,10 +5,39 @@ import { PhoneCall, AlertTriangle, ShieldCheck, Heart, ArrowRight, Loader2, Book
 import Link from "next/link";
 
 export default function RealityCallPage() {
+    const [hotlines, setHotlines] = useState<any[]>([]);
+    const [loadingHotlines, setLoadingHotlines] = useState(true);
     const [articles, setArticles] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingArticles, setLoadingArticles] = useState(true);
 
     useEffect(() => {
+        // Fetch CMS hotlines
+        fetch("/api/admin/contacts")
+            .then(res => res.json())
+            .then(json => {
+                if (json.success && json.data && json.data.length > 0) {
+                    setHotlines(json.data);
+                } else {
+                    // Fallback to defaults if none in DB
+                    setHotlines([
+                        { name: "National Hotline", number: "1500-454", description: "Layanan Konseling Kemensos" },
+                        { name: "Suicide Prevention", number: "119", description: "Bantuan Psikologis Darurat" },
+                    ]);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                // Fallback
+                setHotlines([
+                    { name: "National Hotline", number: "1500-454", description: "Layanan Konseling Kemensos" },
+                    { name: "Suicide Prevention", number: "119", description: "Bantuan Psikologis Darurat" },
+                ]);
+            })
+            .finally(() => setLoadingHotlines(false));
+    }, []);
+
+    useEffect(() => {
+        // Fetch stories
         fetch("/api/articles")
             .then(res => res.json())
             .then(json => {
@@ -18,13 +47,8 @@ export default function RealityCallPage() {
                 }
             })
             .catch(err => console.error(err))
-            .finally(() => setLoading(false));
+            .finally(() => setLoadingArticles(false));
     }, []);
-
-    const hotlines = [
-        { name: "National Hotline", number: "1500-454", desc: "Layanan Konseling Kemensos" },
-        { name: "Suicide Prevention", number: "119", desc: "Bantuan Psikologis Darurat" },
-    ];
 
     return (
         <div className="space-y-12 pb-20">
@@ -42,22 +66,26 @@ export default function RealityCallPage() {
                 </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
-                    {hotlines.map((h, i) => (
+                    {loadingHotlines ? (
+                        <div className="col-span-2 flex justify-center py-4">
+                            <Loader2 className="animate-spin text-red-500" size={24} />
+                        </div>
+                    ) : (hotlines.map((h, i) => (
                         <a 
                             key={i}
-                            href={`tel:${h.number.replace('-', '')}`}
+                            href={`tel:${h.number.replace(/-/g, '')}`}
                             className="bg-white/5 border border-red-500/30 p-6 rounded-[2rem] flex items-center justify-between group hover:bg-red-500 hover:border-red-500 transition-all duration-300"
                         >
                             <div className="text-left">
                                 <p className="text-[10px] font-black text-red-400 group-hover:text-white/80 uppercase tracking-widest mb-1">{h.name}</p>
                                 <p className="text-2xl font-black text-white tracking-tighter italic">{h.number}</p>
-                                <p className="text-[10px] text-white/40 group-hover:text-white/60 mt-1">{h.desc}</p>
+                                <p className="text-[10px] text-white/40 group-hover:text-white/60 mt-1">{h.description || h.desc}</p>
                             </div>
                             <div className="w-12 h-12 rounded-2xl bg-red-500/20 group-hover:bg-white/20 flex items-center justify-center text-red-500 group-hover:text-white transition-colors">
                                 <PhoneCall size={24} />
                             </div>
                         </a>
-                    ))}
+                    )))}
                 </div>
             </div>
 
@@ -72,7 +100,7 @@ export default function RealityCallPage() {
                     </Link>
                 </div>
 
-                {loading ? (
+                {loadingArticles ? (
                     <div className="flex justify-center p-20">
                         <Loader2 className="animate-spin text-accent" size={40} />
                     </div>

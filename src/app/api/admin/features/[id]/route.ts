@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -16,6 +17,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             }
         });
 
+        revalidatePath("/");
         return NextResponse.json({ success: true, data: updatedFeature });
     } catch (error: any) {
         console.error("Features API PUT Error:", error);
@@ -31,6 +33,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             where: { id }
         });
 
+        revalidatePath("/");
         return NextResponse.json({ success: true, message: "Feature deleted successfully" });
     } catch (error: any) {
         console.error("Features API DELETE Error:", error);

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(req: Request) {
   try {
@@ -20,6 +21,8 @@ export async function POST(req: Request) {
         stats_rate: body.stats_rate,
       },
     });
+
+    revalidatePath('/');
     return NextResponse.json({ success: true, data: content });
   } catch (error) {
     console.error('API Error (Admin Landing Page Update):', error);

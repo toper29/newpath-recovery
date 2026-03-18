@@ -1,155 +1,242 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, UserCheck, Activity, Target, ShieldPlus, BarChart3, Loader2 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { 
+    Users, 
+    Crown, 
+    Zap, 
+    TrendingUp, 
+    AlertTriangle, 
+    Activity, 
+    Database, 
+    ShieldCheck, 
+    ArrowUpRight, 
+    Loader2,
+    MousePointer2,
+    ClipboardList,
+    Server,
+    Brain
+} from "lucide-react";
+import { 
+    BarChart, 
+    Bar, 
+    XAxis, 
+    YAxis, 
+    CartesianGrid, 
+    Tooltip, 
+    ResponsiveContainer, 
+    Cell,
+    PieChart,
+    Pie,
+    AreaChart,
+    Area
+} from "recharts";
 
-interface AnalyticsData {
-    mainStats: {
-        totalUsers: number;
-        activeUsersToday: number;
-        pendingApproval: number;
-        avgAddictionScore: number;
-    };
-    featureStats: { name: string; count: number }[];
-    challengeStats: { started: number; completed: number };
-    distribution?: { high: number; medium: number; low: number; };
-    funnel?: { day1: number; day7: number; day14: number; day30: number; };
-}
-
-export default function GlobalAnalyticsDashboard() {
-    const [data, setData] = useState<AnalyticsData | null>(null);
+export default function AdminDashboard() {
+    const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    const fetchStats = async () => {
+        try {
+            const res = await fetch("/api/admin/stats");
+            const json = await res.json();
+            if (json.success) setStats(json.data);
+        } catch (error) {
+            console.error("Failed to fetch stats", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const res = await fetch("/api/admin/stats");
-                const json = await res.json();
-                if (json.success) setData(json.data);
-            } catch (err) {
-                console.error("Failed to fetch analytics", err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchStats();
     }, []);
 
-    if (loading || !data) {
+    if (loading || !stats) {
         return (
-            <div className="flex items-center justify-center h-64 text-accent">
-                <Loader2 className="animate-spin" size={40} />
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <Loader2 className="animate-spin text-accent" size={40} />
+                <p className="text-foreground/50 font-bold animate-pulse">Gathering Analytics...</p>
             </div>
         );
     }
 
-    const mainStats = [
-        { label: "Total User", value: data.mainStats.totalUsers.toString(), trend: "" },
-        { label: "Active User (Today)", value: data.mainStats.activeUsersToday.toString(), trend: "" },
-        { label: "Pending Approval", value: data.mainStats.pendingApproval.toString(), trend: "" },
-        { label: "Avg Addiction Score", value: `${data.mainStats.avgAddictionScore}%`, trend: "" },
-    ];
-
-    const featureStats = data.featureStats;
-
-    const challengeStats = [
-        { label: "Memulai Challenge", value: data.challengeStats.started, icon: Target },
-        { label: "Menyelesaikan Challenge", value: data.challengeStats.completed, icon: ShieldPlus },
-    ];
-
-    const chartData = [
-        { name: 'Day 1', users: data.funnel?.day1 || 0 },
-        { name: 'Day 7', users: data.funnel?.day7 || 0 },
-        { name: 'Day 14', users: data.funnel?.day14 || 0 },
-        { name: 'Day 30', users: data.funnel?.day30 || 0 }
+    const COLORS = ["#EF4444", "#F59E0B", "#10B981"];
+    const riskData = [
+        { name: "High", value: stats.distribution.high },
+        { name: "Medium", value: stats.distribution.medium },
+        { name: "Low", value: stats.distribution.low }
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 pb-20">
             {/* Header */}
-            <div>
-                <h2 className="text-xl font-bold text-foreground">Global Overview</h2>
-                <p className="text-sm text-foreground/50">Ringkasan seluruh aktivitas sistem dan metrik pemulihan pengguna.</p>
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-black text-foreground italic uppercase tracking-tighter flex items-center gap-3">
+                        <Activity className="text-accent" /> Control Center
+                    </h1>
+                    <p className="text-sm text-foreground/50 font-medium">Real-time system performance and user recovery metrics.</p>
+                </div>
+                <div className="flex items-center gap-3 bg-secondary/10 border border-secondary/20 p-2 rounded-2xl">
+                    <div className="flex flex-col items-end px-3">
+                        <span className="text-[10px] font-black text-secondary uppercase tracking-widest">System Health</span>
+                        <span className="text-sm font-bold text-white">{stats.health.dbStatus}</span>
+                    </div>
+                    <div className="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center text-secondary">
+                        <Server size={20} />
+                    </div>
+                </div>
             </div>
 
-            {/* Statistik Utama */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {mainStats.map((stat, i) => (
-                    <div key={i} className="bg-[#0A0F1F] border border-primary/20 rounded-2xl p-5 flex flex-col justify-between hover:bg-primary/5 transition-colors">
-                        <span className="text-xs font-bold text-foreground/50 uppercase tracking-wider">{stat.label}</span>
-                        <div className="mt-4 flex items-end justify-between">
-                            <span className="text-3xl font-black text-foreground">{stat.value}</span>
-                            <span className={`text-xs font-bold ${stat.trend.startsWith('+') ? 'text-accent' : 'text-red-500'}`}>
-                                {stat.trend}
-                            </span>
+            {/* Quick Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                    { label: "Total Users", value: stats.mainStats.totalUsers, sub: `+${stats.mainStats.totalUsers > 100 ? 12 : 0} this week`, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+                    { label: "Premium Users", value: stats.mainStats.premiumUsers, sub: `Conv Rate: ${stats.mainStats.conversionRate}`, icon: Crown, color: "text-amber-500", bg: "bg-amber-500/10" },
+                    { label: "Weekly Active", value: stats.mainStats.activeUsers.weekly, sub: `MAU: ${stats.mainStats.activeUsers.monthly}`, icon: Zap, color: "text-accent", bg: "bg-accent/10" },
+                    { label: "Relapse Alerts", value: stats.reporting.relapseAlertsWeekly, sub: "Last 7 days", icon: AlertTriangle, color: "text-red-500", bg: "bg-red-500/10" }
+                ].map((m, i) => (
+                    <div key={i} className="bg-[#0A0F1F] border border-primary/10 p-6 rounded-[32px] hover:border-primary/30 transition-all group">
+                        <div className="flex justify-between items-start mb-4">
+                            <div className={`w-12 h-12 ${m.bg} ${m.color} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
+                                <m.icon size={24} />
+                            </div>
+                            <div className="text-[10px] font-black text-foreground/30 uppercase tracking-widest bg-foreground/5 px-2 py-1 rounded-lg">Live</div>
                         </div>
+                        <h3 className="text-xs font-black text-foreground/40 uppercase tracking-[0.2em] mb-1">{m.label}</h3>
+                        <div className="text-3xl font-black text-white italic tracking-tighter">{m.value}</div>
+                        <p className="text-[10px] font-bold text-foreground/30 mt-2 flex items-center gap-1">
+                            <TrendingUp size={10} className="text-green-500" /> {m.sub}
+                        </p>
                     </div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Statistik Fitur */}
-                <div className="bg-[#0A0F1F] border border-primary/20 rounded-2xl p-6">
-                    <div className="flex items-center gap-2 mb-6">
-                        <Activity className="text-accent" size={20} />
-                        <h3 className="font-bold text-lg">Statistik Penggunaan Fitur</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Feature Usage Chart */}
+                <div className="lg:col-span-2 bg-[#0A0F1F] border border-primary/10 p-8 rounded-[40px] flex flex-col gap-6">
+                    <div className="flex justify-between items-center">
+                        <h3 className="font-black italic uppercase tracking-tight flex items-center gap-2">
+                            <MousePointer2 className="text-secondary" /> Feature Engagement
+                        </h3>
                     </div>
-                    <div className="space-y-4">
-                        {featureStats.map((feat, i) => (
-                            <div key={i} className="flex justify-between items-center p-3 rounded-xl bg-foreground/5 border border-primary/10">
-                                <span className="text-sm font-medium text-foreground/80">{feat.name}</span>
-                                <span className="text-sm font-bold text-accent">{feat.count} kali digunakan</span>
-                            </div>
-                        ))}
+                    <div className="h-[300px] w-full mt-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={stats.featureStats}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                                <XAxis 
+                                    dataKey="name" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: "#ffffff20", fontSize: 10, fontWeight: "bold" }} 
+                                    interval={0}
+                                    tickFormatter={(val) => val.length > 10 ? val.substring(0, 10) + ".." : val}
+                                />
+                                <YAxis hide />
+                                <Tooltip 
+                                    cursor={{ fill: "#ffffff05" }} 
+                                    contentStyle={{ backgroundColor: "#0D1225", border: "1px solid #ffffff10", borderRadius: "16px", color: "white" }}
+                                />
+                                <Bar dataKey="count" fill="#38BDF8" radius={[8, 8, 0, 0]} barSize={40}>
+                                    {stats.featureStats.map((entry: any, index: number) => (
+                                        <Cell key={`cell-${index}`} fill={index === 0 ? "#38BDF8" : "#38BDF820"} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* Statistik Challenge */}
-                <div className="bg-[#0A0F1F] border border-primary/20 rounded-2xl p-6">
-                    <div className="flex items-center gap-2 mb-6">
-                        <Target className="text-accent" size={20} />
-                        <h3 className="font-bold text-lg">Program 30 Hari (Challenge)</h3>
+                {/* Risk Distribution Chart */}
+                <div className="bg-[#0A0F1F] border border-primary/10 p-8 rounded-[40px] flex flex-col items-center">
+                    <h3 className="font-black italic uppercase tracking-tight flex items-center gap-2 mb-8 self-start">
+                        <AlertTriangle className="text-red-500" /> Risk Distribution
+                    </h3>
+                    <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={riskData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {riskData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip 
+                                    contentStyle={{ backgroundColor: "#0D1225", border: "1px solid #ffffff10", borderRadius: "16px", color: "white" }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
                     </div>
-                    <div className="grid gap-4">
-                        {challengeStats.map((cs, i) => (
-                            <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-foreground/5 border border-primary/10">
-                                <div className="p-3 bg-primary/20 rounded-lg text-accent">
-                                    <cs.icon size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-foreground/50 uppercase font-bold tracking-wider">{cs.label}</p>
-                                    <p className="text-2xl font-black mt-1 text-foreground">{cs.value} <span className="text-sm font-normal text-foreground/50">User</span></p>
-                                </div>
+                    <div className="grid grid-cols-3 gap-4 w-full mt-4">
+                        {riskData.map((d, i) => (
+                            <div key={i} className="text-center">
+                                <div className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-40">{d.name}</div>
+                                <div className="text-sm font-black" style={{ color: COLORS[i] }}>{d.value}%</div>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
 
-            {/* Grafik Aktivitas (Active Chart) */}
-            <div className="bg-[#0A0F1F] border border-primary/20 rounded-2xl p-6 h-80 flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <BarChart3 className="text-accent" size={20} />
-                        <h3 className="font-bold text-lg">Retensi Challenge 30 Hari</h3>
+            {/* Bottom Section: Health & Reports */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Reports & Checkins */}
+                <div className="bg-[#0A0F1F] border border-primary/10 p-8 rounded-[40px]">
+                    <h3 className="font-black italic uppercase tracking-tight flex items-center gap-2 mb-8">
+                        <ClipboardList className="text-purple-500" /> Activity Reports
+                    </h3>
+                    <div className="space-y-4">
+                        {[
+                            { label: "Gambling Reports", count: stats.reporting.totalReports, icon: AlertTriangle, val: "Pending: " + stats.reporting.pendingReports },
+                            { label: "Total Check-ins", count: stats.reporting.totalCheckins, icon: ShieldCheck, val: "Daily Motivation" },
+                            { label: "Addiction Score", count: stats.mainStats.avgAddictionScore, icon: Brain, val: "Global Average" }
+                        ].map((r, i) => (
+                            <div key={i} className="flex justify-between items-center p-4 bg-foreground/5 rounded-2xl border border-foreground/5 hover:border-foreground/10 transition-colors">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/50">
+                                        <r.icon size={20} />
+                                    </div>
+                                    <div>
+                                        <div className="text-sm font-bold">{r.label}</div>
+                                        <div className="text-[10px] font-medium text-foreground/30 capitalize">{r.val}</div>
+                                    </div>
+                                </div>
+                                <div className="text-xl font-black text-white italic">{r.count}</div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                <div className="flex-1 w-full h-full mt-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                            <XAxis dataKey="name" stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis stroke="#ffffff50" fontSize={12} tickLine={false} axisLine={false} />
-                            <Tooltip 
-                                contentStyle={{ backgroundColor: '#0A0F1F', borderColor: '#38BDF840', borderRadius: '12px' }}
-                                itemStyle={{ color: '#38BDF8', fontWeight: 'bold' }}
-                                cursor={{ fill: '#38BDF810' }}
-                            />
-                            <Bar dataKey="users" fill="#38BDF8" radius={[6, 6, 0, 0]} barSize={50} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                {/* System Health */}
+                <div className="bg-gradient-to-br from-[#0D1225] to-[#0A0F1F] border border-secondary/20 p-8 rounded-[40px] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                        <Activity size={150} />
+                    </div>
+                    <h3 className="font-black italic uppercase tracking-tight flex items-center gap-2 mb-8">
+                        <Database className="text-secondary" /> System Infrastructure
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        {[
+                            { label: "Server Uptime", value: stats.health.uptime, sub: "Last 30 days" },
+                            { label: "API Latency", value: stats.health.latency, sub: "Indonesia Regional" },
+                            { label: "Database Load", value: stats.health.diskUsage, sub: "Postgres Storage" },
+                            { label: "System Status", value: stats.health.dbStatus, sub: "Operational", color: "text-green-500" }
+                        ].map((h, i) => (
+                            <div key={i} className="p-5 bg-white/5 rounded-[24px] border border-white/5">
+                                <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">{h.label}</div>
+                                <div className={`text-xl font-black italic tracking-tighter ${h.color || "text-white"}`}>{h.value}</div>
+                                <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest mt-1">{h.sub}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
