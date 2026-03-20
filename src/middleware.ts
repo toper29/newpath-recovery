@@ -81,12 +81,13 @@ export async function middleware(request: NextRequest) {
             const { payload } = await jwtVerify(token, secret);
             const userRole = payload.role as string;
             const membershipStatus = payload.membership_status as string;
+            const isAdminOverride = payload.is_admin_override === true;
 
             // Route list requiring premium
             const premiumRoutes = ['/dashboard/pelatihan/grid-memory', '/dashboard/pelatihan/sequence-memory'];
             const isPremiumRoute = premiumRoutes.some(p => path.startsWith(p));
 
-            if (isPremiumRoute && membershipStatus !== 'premium' && userRole !== 'SUPERADMIN' && userRole !== 'ADMIN') {
+            if (isPremiumRoute && membershipStatus !== 'premium' && !isAdminOverride && userRole !== 'SUPERADMIN' && userRole !== 'ADMIN') {
                  if (path.startsWith('/api')) {
                     return new NextResponse(
                         JSON.stringify({ success: false, error: 'Pro: Upgrade to premium to access this feature' }),

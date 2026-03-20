@@ -91,11 +91,15 @@ export async function POST(request: Request) {
         if (!secretStr) throw new Error("JWT_SECRET is not configured");
         const secret = new TextEncoder().encode(secretStr);
 
+        // Calculate true premium status for session
+        const effectiveMembershipStatus = (user.membership_status === "premium" || user.is_admin_override) ? "premium" : user.membership_status;
+
         const token = await new SignJWT({ 
             userId: user.id, 
             email: user.email, 
             role: user.role,
-            membership_status: user.membership_status 
+            membership_status: effectiveMembershipStatus,
+            is_admin_override: user.is_admin_override
         })
             .setProtectedHeader({ alg: "HS256" })
             .setIssuedAt()

@@ -22,7 +22,8 @@ export async function POST() {
                 id: true,
                 email: true,
                 role: true,
-                membership_status: true
+                membership_status: true,
+                is_admin_override: true
             }
         });
 
@@ -35,11 +36,16 @@ export async function POST() {
         if (!secretStr) throw new Error("JWT_SECRET is not configured");
         const secret = new TextEncoder().encode(secretStr);
 
+        // Calculate true premium status for session
+        const isPremium = user.membership_status === "premium" || (user as any).is_admin_override === true;
+        const effectiveMembershipStatus = isPremium ? "premium" : user.membership_status;
+
         const token = await new SignJWT({ 
             userId: user.id, 
             email: user.email, 
             role: user.role,
-            membership_status: user.membership_status 
+            membership_status: effectiveMembershipStatus,
+            is_admin_override: (user as any).is_admin_override
         })
             .setProtectedHeader({ alg: "HS256" })
             .setIssuedAt()

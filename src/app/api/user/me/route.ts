@@ -76,6 +76,41 @@ export async function GET(request: Request) {
         // Calculate if user is premium
         const isPremium = user.membership_status === "premium" || user.is_admin_override === true;
 
+        // Check if session is stale (DB says premium, but JWT might still say free)
+        const jwtMembershipStatus = payload.membership_status as string;
+        const dbMembershipStatus = user.membership_status as string;
+        const isPremiumEffective = user.membership_status === "premium" || user.is_admin_override === true;
+        const targetTokenStatus = isPremiumEffective ? "premium" : dbMembershipStatus;
+        
+        if (targetTokenStatus !== jwtMembershipStatus) {
+            console.log(`API /api/user/me: Session stale (${jwtMembershipStatus} vs ${targetTokenStatus}), refreshing token...`);
+            try {
+                const { SignJWT } = await import("jose");
+                const refreshedToken = await new SignJWT({ 
+                    userId: user.id, 
+                    email: user.email, 
+                    role: user.role, 
+                    membership_status: targetTokenStatus,
+                    is_admin_override: user.is_admin_override
+                })
+                    .setProtectedHeader({ alg: "HS256" })
+                    .setIssuedAt()
+                    .setExpirationTime("7d")
+                    .sign(secret);
+
+                cookieStore.set("token", refreshedToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax",
+                    maxAge: 60 * 60 * 24 * 7,
+                    path: "/"
+                });
+                console.log("API /api/user/me: Token refreshed successfully");
+            } catch (refreshErr) {
+                console.error("API /api/user/me: Failed to refresh stale token", refreshErr);
+            }
+        }
+
         return NextResponse.json({ 
             success: true, 
             data: { 
@@ -90,6 +125,7 @@ export async function GET(request: Request) {
                 membership_status: user.membership_status,
                 premium_activated_at: user.premium_activated_at,
                 is_admin_override: user.is_admin_override,
+                isPremium: isPremium,
                 hasCheckedInToday: !!todayCheckIn,
                 cleanDays: challenges.length,
                 completedChallengeDays: challenges.map((c: any) => c.dayCompleted),

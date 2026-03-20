@@ -12,7 +12,7 @@ export interface UserMembership {
  */
 export function checkPremiumAccess(user: UserMembership | null | undefined): boolean {
     if (!user) return false;
-    return user.membership_status === "PREMIUM" || user.admin_override === true;
+    return user.membership_status?.toLowerCase() === "premium" || user.admin_override === true;
 }
 
 /**

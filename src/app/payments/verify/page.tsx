@@ -30,7 +30,16 @@ function VerifyContent() {
             if (data.success && data.status === 'completed') {
                 setStatus('success');
                 setMessage(data.message || 'Pembayaran berhasil diverifikasi!');
-                // Redirect to dashboard after 3 seconds to refresh JWT-based session
+                
+                // Refresh session to update JWT cookie with new premium status
+                try {
+                    await fetch('/api/auth/refresh-token', { method: 'POST' });
+                    console.log('Session refreshed successfully');
+                } catch (refreshErr) {
+                    console.error('Failed to refresh session:', refreshErr);
+                }
+
+                // Redirect to dashboard after 3 seconds
                 setTimeout(() => router.push('/dashboard/membership'), 3000);
             } else {
                 setStatus('pending');
