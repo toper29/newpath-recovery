@@ -12,7 +12,7 @@ export default function MembershipPage() {
     const router = useRouter();
 
     useEffect(() => {
-        fetch("/api/admin/settings?keys=PREMIUM_PRICE")
+        fetch("/api/public/settings?keys=PREMIUM_PRICE")
             .then(res => res.json())
             .then(json => {
                 if (json.success && json.data.PREMIUM_PRICE) {
