@@ -11,6 +11,17 @@ export default function MembershipPage() {
     const { user, refreshUser } = useUser();
     const router = useRouter();
 
+    useEffect(() => {
+        fetch("/api/admin/settings?keys=PREMIUM_PRICE")
+            .then(res => res.json())
+            .then(json => {
+                if (json.success && json.data.PREMIUM_PRICE) {
+                    setPrice(parseInt(json.data.PREMIUM_PRICE));
+                }
+            })
+            .catch(err => console.error("Failed to fetch price", err));
+    }, []);
+
     const handleUpgrade = async () => {
         setLoading(true);
         try {

@@ -17,6 +17,10 @@ import {
     Lock,
     Search,
     Trophy,
+    HelpCircle,
+    MessageSquare,
+    Zap,
+    Layout,
     X
 } from "lucide-react";
 
@@ -39,17 +43,17 @@ export const superAdminMenus = [
         section: "Konten & CMS",
         items: [
             { name: "Content Control", href: "/admin/content", icon: FileText },
-            { name: "FAQ Management", href: "/admin/faq", icon: FileText },
-            { name: "Features CMS", href: "/admin/features", icon: FileText },
-            { name: "Stories / Testimoni", href: "/admin/stories", icon: FileText },
-            { name: "Landing Page CMS", href: "/admin/landing-page", icon: LayoutDashboard },
+            { name: "FAQ Management", href: "/admin/faq", icon: HelpCircle },
+            { name: "Features CMS", href: "/admin/features", icon: Zap },
+            { name: "Stories & Testimonials", href: "/admin/testimonials", icon: MessageSquare },
+            { name: "Landing Page CMS", href: "/admin/landing-page", icon: Layout },
         ]
     },
     {
         section: "Sistem & Keamanan",
         items: [
             { name: "Admin Management", href: "/admin/admins", icon: ShieldCheck },
-            { name: "Feature Control", href: "/admin/features", icon: Sliders },
+            { name: "System Settings", href: "/admin/settings", icon: Settings },
             { name: "Game Thresholds", href: "/admin/features/thresholds", icon: Trophy },
             { name: "Security Center", href: "/admin/security/dashboard", icon: Lock },
             { name: "Security Scanner", href: "/admin/security/scanner", icon: Search },
