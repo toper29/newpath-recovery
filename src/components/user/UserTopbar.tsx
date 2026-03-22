@@ -6,36 +6,12 @@ import { usePathname } from "next/navigation";
 import { Bell, Trophy, ShieldAlert, Menu, X, BrainCircuit, Crown } from "lucide-react";
 import { useSidebar } from "../layout/SidebarContext";
 import NotificationBell from "../ui/NotificationBell";
+import { useUser } from "@/context/UserContext";
 
 export default function UserTopbar() {
     const pathname = usePathname();
     const { toggle, isOpen } = useSidebar();
-    const [userData, setUserData] = useState({ xp: 0, level: 1, cleanDays: 0, isPremium: false, loading: true });
-
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                const res = await fetch("/api/user/me");
-                const json = await res.json();
-                if (json.success && json.data) {
-                    setUserData({
-                        xp: json.data.xp,
-                        level: json.data.level,
-                        cleanDays: json.data.cleanDays,
-                        isPremium: json.data.isPremium,
-                        loading: false
-                    });
-                } else {
-                    setUserData(prev => ({ ...prev, loading: false }));
-                    console.error("User API returned error:", json.error);
-                }
-            } catch (err) {
-                setUserData(prev => ({ ...prev, loading: false }));
-                console.error("Failed to load header data", err);
-            }
-        };
-        fetchUserData();
-    }, []);
+    const { user, loading } = useUser();
 
     const getPageTitle = () => {
         if (pathname === "/dashboard") return "My Dashboard";
@@ -67,18 +43,18 @@ export default function UserTopbar() {
 
             <div className="flex items-center gap-4 md:gap-6">
                 <div className="flex items-center gap-2 md:gap-3">
-                    {!userData.loading && (
+                    {!loading && user && (
                         <>
-                            {userData.isPremium && (
+                            {user.isPremium && (
                                 <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                                     <Crown size={14} /> <span className="hidden xs:inline">Premium</span>
                                 </div>
                             )}
                             <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-[0_0_10px_rgba(59,130,246,0.1)]">
-                                <BrainCircuit size={14} /> <span className="hidden xs:inline">Lvl</span> {userData.level} <span className="hidden sm:inline text-blue-400/60 ml-1">{userData.xp}/{userData.level * 500} XP</span>
+                                <BrainCircuit size={14} /> <span className="hidden xs:inline">Lvl</span> {user.level} <span className="hidden sm:inline text-blue-400/60 ml-1">{user.xp}/{user.level * 500} XP</span>
                             </div>
                             <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 bg-accent/10 border border-accent/20 rounded-full text-accent font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-[0_0_10px_rgba(56,189,248,0.1)]">
-                                <Trophy size={14} /> <span className="hidden xs:inline">Day</span> {userData.cleanDays} <span className="hidden sm:inline text-accent/60 ml-1">Clean</span>
+                                <Trophy size={14} /> <span className="hidden xs:inline">Day</span> {user.cleanDays} <span className="hidden sm:inline text-accent/60 ml-1">Clean</span>
                             </div>
                         </>
                     )}

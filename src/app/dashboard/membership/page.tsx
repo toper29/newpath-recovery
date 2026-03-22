@@ -3,24 +3,13 @@
 import { useState, useEffect } from "react";
 import { Crown, Check, Zap, Target, Cpu, MessageCircle, Calendar, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
 export default function MembershipPage() {
     const [loading, setLoading] = useState(false);
     const [price, setPrice] = useState(50000);
-    const [user, setUser] = useState<any>(null);
+    const { user, refreshUser } = useUser();
     const router = useRouter();
-
-    useEffect(() => {
-        // Fetch user data and price
-        fetch("/api/user/me")
-            .then(res => res.json())
-            .then(json => {
-                if (json.success) setUser(json.data);
-            });
-
-        fetch("/api/payments/status") // Actually need an endpoint to get config, but for now we poll status which is empty. 
-        // Let's just use the checkout API to get the current price if possible, or just default.
-    }, []);
 
     const handleUpgrade = async () => {
         setLoading(true);

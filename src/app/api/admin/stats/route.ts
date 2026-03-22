@@ -16,6 +16,9 @@ export async function GET() {
             where: { role: "USER", membership_status: "premium" } 
         });
         const premiumConversion = totalUsers > 0 ? Math.round((premiumUsers / totalUsers) * 100) : 0;
+        const newUsersWeekly = await prisma.user.count({
+            where: { role: "USER", createdAt: { gte: sevenDaysAgo } }
+        });
 
         // 2. Engagement Metrics (MAU/WAU)
         const dailyActiveUsers = await prisma.featureUsage.groupBy({
@@ -33,31 +36,21 @@ export async function GET() {
             where: { usedAt: { gte: thirtyDaysAgo } }
         });
 
-        // 3. Addiction & Risk Distribution
-        const allUsers = await prisma.user.findMany({
-            where: { role: "USER" },
-            include: {
-                addictionTests: {
-                    orderBy: { createdAt: 'desc' },
-                    take: 1
-                }
-            }
+        // 3. Addiction & Risk Distribution (Optimized: Aggregate in DB)
+        const riskGroups = await prisma.addictionTest.groupBy({
+            by: ['category'],
+            _count: { _all: true },
+            _avg: { score: true },
         });
 
-        let highRisk = 0, medRisk = 0, lowRisk = 0;
-        let totalScored = 0;
-        let sumScore = 0;
-
-        allUsers.forEach((u: any) => {
-            if (u.addictionTests && u.addictionTests.length > 0) {
-                const s = u.addictionTests[0].score;
-                sumScore += s;
-                totalScored++;
-                if (s > 70) highRisk++;
-                else if (s > 40) medRisk++;
-                else lowRisk++;
-            }
-        });
+        const highRiskCount = riskGroups.find(g => g.category === "High Risk")?._count._all || 0;
+        const medRiskCount = riskGroups.find(g => g.category === "Medium Risk")?._count._all || 0;
+        const lowRiskCount = riskGroups.find(g => g.category === "Low Risk")?._count._all || 0;
+        const totalScored = highRiskCount + medRiskCount + lowRiskCount;
+        
+        const avgScore = riskGroups.length > 0 
+            ? Math.round(riskGroups.reduce((acc, curr) => acc + (curr._avg.score || 0), 0) / riskGroups.length) 
+            : 0;
 
         // 4. Feature Usage Stats
         const featureUsageRaw = await prisma.featureUsage.groupBy({
@@ -72,7 +65,15 @@ export async function GET() {
             count: f._count.featureName
         }));
 
-        // 5. Reports & System Health
+        // 5. Funnel Stats (Challenge Progress)
+        const funnel = {
+            day1: await (prisma as any).challengeProgress.count({ where: { dayCompleted: { gte: 1 } } }),
+            day7: await (prisma as any).challengeProgress.count({ where: { dayCompleted: { gte: 7 } } }),
+            day11: await (prisma as any).challengeProgress.count({ where: { dayCompleted: { gte: 11 } } }),
+            day14: await (prisma as any).challengeProgress.count({ where: { dayCompleted: { gte: 14 } } })
+        };
+
+        // 6. Reports & System Health
         const totalReports = await (prisma as any).gamblingReport.count();
         const pendingReports = await (prisma as any).gamblingReport.count({
              where: { status: "pending" } 
@@ -103,19 +104,23 @@ export async function GET() {
                         weekly: weeklyActiveUsers.length,
                         monthly: monthlyActiveUsers.length
                     },
-                    avgAddictionScore: totalScored > 0 ? Math.round(sumScore / totalScored) : 0,
+                    activeUsersToday: dailyActiveUsers.length, // Frontend alias
+                    newUsersWeekly, // Frontend expected
+                    avgAddictionScore: avgScore, // Frontend alias
+                    averageScore: avgScore,
                 },
                 health: systemHealth,
                 distribution: {
-                    high: totalScored > 0 ? Math.round((highRisk / totalScored) * 100) : 0,
-                    medium: totalScored > 0 ? Math.round((medRisk / totalScored) * 100) : 0,
-                    low: totalScored > 0 ? Math.round((lowRisk / totalScored) * 100) : 0
+                    high: totalScored > 0 ? Math.round((highRiskCount / totalScored) * 100) : 0,
+                    medium: totalScored > 0 ? Math.round((medRiskCount / totalScored) * 100) : 0,
+                    low: totalScored > 0 ? Math.round((lowRiskCount / totalScored) * 100) : 0
                 },
                 featureStats: featureStats.length > 0 ? featureStats : [
                     { name: "Emergency Reality Call", count: 0 },
                     { name: "Slot Trap Simulator", count: 0 },
                     { name: "Addiction Test", count: 0 }
                 ],
+                funnel, // Crucial for fixing the crash
                 reporting: {
                     totalReports,
                     pendingReports,

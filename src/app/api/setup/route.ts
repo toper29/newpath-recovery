@@ -7,8 +7,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get("secret");
 
-    // Simple protection so random users can't trigger this
-    if (secret !== process.env.SETUP_SECRET && secret !== "newpath-setup-2025") {
+    // Protection so random users can't trigger this
+    if (!process.env.SETUP_SECRET || secret !== process.env.SETUP_SECRET) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

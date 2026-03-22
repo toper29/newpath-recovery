@@ -25,6 +25,7 @@ import {
     Crown
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useUser } from "@/context/UserContext";
 
 export const userMenus = [
     { 
@@ -67,23 +68,7 @@ export const userMenus = [
 export default function UserSidebar() {
     const pathname = usePathname();
     const { isOpen, close } = useSidebar();
-    const [userData, setUserData] = useState<any>(null);
-
-    useEffect(() => {
-        fetch("/api/user/me")
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to fetch");
-                return res.json();
-            })
-            .then(json => {
-                if (json.success) setUserData(json.data);
-                else setUserData({ username: "Guest" }); // Fallback
-            })
-            .catch(err => {
-                console.error(err);
-                setUserData({ username: "Disconnected" }); // Fallback
-            });
-    }, []);
+    const { user: userData, loading } = useUser();
 
     const isPremiumUser = userData?.isPremium || false;
 
