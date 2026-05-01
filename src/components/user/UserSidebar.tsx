@@ -87,7 +87,7 @@ export default function UserSidebar() {
                     <Link href="/" className="flex items-center gap-3">
                         <img src="/logo.png" alt="NewPath Logo" className="w-10 h-auto" />
                         <div>
-                            <h1 className="font-bold text-lg leading-tight">NewPath</h1>
+                            <h1 className="font-bold text-lg leading-tight">NewPath Recovery</h1>
                             <p className="text-[10px] text-accent font-medium tracking-wider uppercase">
                                 User Workspace
                             </p>

@@ -24,7 +24,7 @@ export default function Navbar() {
                                     <img src="/logo.png" alt="NewPath Logo" className="h-8 w-8 object-contain" />
                                 </div>
                                 <span className="font-black text-2xl tracking-tighter text-white uppercase italic">
-                                    NewPath
+                                    NewPath Recovery
                                 </span>
                             </Link>
                         </div>
