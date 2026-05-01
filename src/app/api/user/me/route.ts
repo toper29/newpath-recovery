@@ -32,7 +32,7 @@ export async function GET(request: Request) {
                     id: true, xp: true, level: true, username: true, email: true, phone: true, 
                     streak: true, longestStreak: true, role: true, title: true,
                     membership_status: true, premium_activated_at: true, is_admin_override: true
-                } as any
+                }
             }),
             prisma.challengeProgress.findMany({
                 where: { userId, status: "completed" },
@@ -43,12 +43,11 @@ export async function GET(request: Request) {
                 where: { userId, checkedAt: { gte: todayStart, lt: tomorrowStart } },
                 select: { id: true }
             }),
-            // Use cache for article count as it doesn't change often
             (async () => {
                 const cached = serverCache.get<number>("article_count");
                 if (cached !== null) return cached;
                 const count = await prisma.article.count();
-                serverCache.set("article_count", count, 600); // Cache for 10 minutes
+                serverCache.set("article_count", count, 600);
                 return count;
             })()
         ]);
@@ -68,10 +67,14 @@ export async function GET(request: Request) {
         }
 
         // Token refresh logic (session stale check)
-        const isPremiumEffective = user.membership_status === "premium" || user.is_admin_override === true;
-        const targetTokenStatus = isPremiumEffective ? "premium" : user.membership_status;
+        // Explicitly cast membership_status to string to satisfy TS
+        const dbMembershipStatus = String(user.membership_status || "free");
+        const isPremiumEffective = dbMembershipStatus === "premium" || user.is_admin_override === true;
+        const targetTokenStatus = isPremiumEffective ? "premium" : dbMembershipStatus;
         
-        if (targetTokenStatus !== payload.membership_status) {
+        const currentTokenStatus = String(payload.membership_status || "free");
+        
+        if (targetTokenStatus !== currentTokenStatus) {
             try {
                 const { SignJWT } = await import("jose");
                 const refreshedToken = await new SignJWT({ 
@@ -104,7 +107,7 @@ export async function GET(request: Request) {
                 xp: user.xp, 
                 level: user.level, 
                 username: user.username,
-                title: (user as any).title || "The Awakening",
+                title: user.title || "The Awakening",
                 email: user.email,
                 phone: user.phone,
                 streak: user.streak || 0,
