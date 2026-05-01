@@ -30,7 +30,7 @@ export async function GET(request: Request) {
                 where: { id: userId },
                 select: { 
                     id: true, xp: true, level: true, username: true, email: true, phone: true, 
-                    streak: true, longestStreak: true, role: true, title: true,
+                    streak: true, longestStreak: true, role: true,
                     membership_status: true, premium_activated_at: true, is_admin_override: true
                 }
             }),
@@ -107,7 +107,7 @@ export async function GET(request: Request) {
                 xp: user.xp, 
                 level: user.level, 
                 username: user.username,
-                title: user.title || "The Awakening",
+                title: "The Awakening",
                 email: user.email,
                 phone: user.phone,
                 streak: user.streak || 0,
