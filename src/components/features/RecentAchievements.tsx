@@ -2,7 +2,8 @@
 
 import { Award, ExternalLink, ShieldCheck, Target, Loader2, Sparkles, Calendar, Zap, BrainCircuit, BookOpen, Trophy, TrendingUp, Milestone, GraduationCap } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useAchievements } from "@/hooks/use-achievements";
+import { useMemo } from "react";
 
 const ICON_COMPONENTS: Record<string, any> = {
     'Calendar': Calendar,
@@ -17,31 +18,20 @@ const ICON_COMPONENTS: Record<string, any> = {
 };
 
 export default function RecentAchievements() {
-    const [achievements, setAchievements] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { achievements, isLoading } = useAchievements();
 
-    useEffect(() => {
-        fetch("/api/user/achievements")
-            .then(res => res.json())
-            .then(json => {
-                if (json.success) {
-                    // Filter for unlocked and sort by unlockedAt desc, take top 3
-                    const recent = json.data
-                        .filter((a: any) => a.isUnlocked)
-                        .sort((a: any, b: any) => {
-                            const dateA = a.unlockedAt ? new Date(a.unlockedAt).getTime() : 0;
-                            const dateB = b.unlockedAt ? new Date(b.unlockedAt).getTime() : 0;
-                            return dateB - dateA;
-                        })
-                        .slice(0, 3);
-                    setAchievements(recent);
-                }
+    const recentAchievements = useMemo(() => {
+        return achievements
+            .filter((a: any) => a.isUnlocked)
+            .sort((a: any, b: any) => {
+                const dateA = a.unlockedAt ? new Date(a.unlockedAt).getTime() : 0;
+                const dateB = b.unlockedAt ? new Date(b.unlockedAt).getTime() : 0;
+                return dateB - dateA;
             })
-            .catch(err => console.error("Failed to load achievements", err))
-            .finally(() => setLoading(false));
-    }, []);
+            .slice(0, 3);
+    }, [achievements]);
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="bg-[#0A0F1F] border border-primary/20 rounded-3xl p-12 flex items-center justify-center">
                 <Loader2 size={32} className="text-accent animate-spin" />
@@ -65,7 +55,7 @@ export default function RecentAchievements() {
                 </Link>
             </div>
 
-            {achievements.length === 0 ? (
+            {recentAchievements.length === 0 ? (
                 <div className="py-10 text-center relative z-10 bg-[#060A14] border border-white/5 rounded-2xl">
                     <Award size={40} className="mx-auto mb-4 text-white/10" />
                     <p className="text-white/30 text-xs font-black uppercase tracking-widest">Belum ada pencapaian yang diraih.</p>
@@ -73,8 +63,8 @@ export default function RecentAchievements() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                    {achievements.map((ach, i) => {
-                        const IconComp = ICON_COMPONENTS[ach.iconName] || Award;
+                    {recentAchievements.map((ach, i) => {
+                        const IconComp = ICON_COMPONENTS[ach.achievement.iconName] || Award;
                         return (
                             <div key={i} className="bg-[#060A14] border border-white/5 rounded-2xl p-6 hover:border-accent/30 transition-all group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-accent/10 transition-colors" />
@@ -89,13 +79,13 @@ export default function RecentAchievements() {
                                 </div>
                                 
                                 <span className="text-[10px] font-black text-accent/60 uppercase tracking-widest mb-1 block relative z-10">
-                                    {ach.category}
+                                    {ach.achievement.category}
                                 </span>
                                 <h4 className="text-lg font-black text-white mb-2 group-hover:text-accent transition-colors uppercase tracking-tighter italic relative z-10">
-                                    {ach.title}
+                                    {ach.achievement.title}
                                 </h4>
                                 <p className="text-xs text-white/40 leading-relaxed font-medium relative z-10">
-                                    {ach.description}
+                                    {ach.achievement.description}
                                 </p>
                             </div>
                         );

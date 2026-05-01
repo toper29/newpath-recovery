@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { serverCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -9,10 +10,7 @@ export async function GET(request: Request) {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
-        if (!token) {
-            console.log("API /api/user/me: No token found");
-            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-        }
+        if (!token) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const secretStr = process.env.JWT_SECRET;
         if (!secretStr) throw new Error("JWT_SECRET is not configured");
@@ -20,70 +18,60 @@ export async function GET(request: Request) {
         const secret = new TextEncoder().encode(secretStr);
         const { payload } = await jwtVerify(token, secret);
         const userId = payload.userId as string;
-        console.log("API /api/user/me: Request from user", userId);
 
-        let user: any;
-        try {
-            user = await prisma.user.findUnique({
+        // Optimization: Use Promise.all to fetch independent data in parallel
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const tomorrowStart = new Date(todayStart);
+        tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+        const [user, challenges, todayCheckIn, articleCount] = await Promise.all([
+            prisma.user.findUnique({
                 where: { id: userId },
                 select: { 
-                    xp: true, level: true, username: true, email: true, phone: true, 
-                    streak: true, longestStreak: true,
+                    id: true, xp: true, level: true, username: true, email: true, phone: true, 
+                    streak: true, longestStreak: true, role: true, title: true,
                     membership_status: true, premium_activated_at: true, is_admin_override: true
                 } as any
-            });
-        } catch (e) {
-            console.log("Standard findUnique failed, trying queryRaw fallback for User...");
-            const rawUsers: any[] = await prisma.$queryRaw`SELECT xp, level, username, email, phone, streak, longestStreak, membership_status, premium_activated_at, is_admin_override FROM User WHERE id = ${userId} LIMIT 1`;
-            user = rawUsers[0];
-        }
+            }),
+            prisma.challengeProgress.findMany({
+                where: { userId, status: "completed" },
+                orderBy: { dayCompleted: 'asc' },
+                select: { dayCompleted: true, completedAt: true }
+            }),
+            prisma.dailyCheckIn.findFirst({
+                where: { userId, checkedAt: { gte: todayStart, lt: tomorrowStart } },
+                select: { id: true }
+            }),
+            // Use cache for article count as it doesn't change often
+            (async () => {
+                const cached = serverCache.get<number>("article_count");
+                if (cached !== null) return cached;
+                const count = await prisma.article.count();
+                serverCache.set("article_count", count, 600); // Cache for 10 minutes
+                return count;
+            })()
+        ]);
 
         if (!user) return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
 
-        // Get challenge progress
-        const challenges = await (prisma as any).challengeProgress.findMany({
-            where: { userId, status: "completed" },
-            orderBy: { dayCompleted: 'asc' }
-        });
-
+        // Logic for next task
         const latestChallenge = challenges.length > 0 ? challenges[challenges.length - 1] : null;
         let canDoNextTask = true;
         
         if (latestChallenge) {
              const lastCompleted = new Date(latestChallenge.completedAt);
              const today = new Date();
-             
-             // If completed today, cannot do next task until tomorrow (midnight passed)
-             if (lastCompleted.getFullYear() === today.getFullYear() && 
-                 lastCompleted.getMonth() === today.getMonth() && 
-                 lastCompleted.getDate() === today.getDate()) {
+             if (lastCompleted.toDateString() === today.toDateString()) {
                  canDoNextTask = false;
              }
         }
 
-        // Check daily check-in status
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        const tomorrowStart = new Date(todayStart);
-        tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-
-        const todayCheckIn = await (prisma as any).dailyCheckIn.findFirst({
-            where: { userId, checkedAt: { gte: todayStart, lt: tomorrowStart } }
-        });
-
-        const articleCount = await prisma.article.count();
-
-        // Calculate if user is premium
-        const isPremium = user.membership_status === "premium" || user.is_admin_override === true;
-
-        // Check if session is stale (DB says premium, but JWT might still say free)
-        const jwtMembershipStatus = payload.membership_status as string;
-        const dbMembershipStatus = user.membership_status as string;
+        // Token refresh logic (session stale check)
         const isPremiumEffective = user.membership_status === "premium" || user.is_admin_override === true;
-        const targetTokenStatus = isPremiumEffective ? "premium" : dbMembershipStatus;
+        const targetTokenStatus = isPremiumEffective ? "premium" : user.membership_status;
         
-        if (targetTokenStatus !== jwtMembershipStatus) {
-            console.log(`API /api/user/me: Session stale (${jwtMembershipStatus} vs ${targetTokenStatus}), refreshing token...`);
+        if (targetTokenStatus !== payload.membership_status) {
             try {
                 const { SignJWT } = await import("jose");
                 const refreshedToken = await new SignJWT({ 
@@ -105,9 +93,8 @@ export async function GET(request: Request) {
                     maxAge: 60 * 60 * 24 * 7,
                     path: "/"
                 });
-                console.log("API /api/user/me: Token refreshed successfully");
             } catch (refreshErr) {
-                console.error("API /api/user/me: Failed to refresh stale token", refreshErr);
+                console.error("Token refresh failed:", refreshErr);
             }
         }
 
@@ -120,15 +107,15 @@ export async function GET(request: Request) {
                 title: (user as any).title || "The Awakening",
                 email: user.email,
                 phone: user.phone,
-                streak: (user as any).streak || 0,
-                longestStreak: (user as any).longestStreak || 0,
+                streak: user.streak || 0,
+                longestStreak: user.longestStreak || 0,
                 membership_status: user.membership_status,
                 premium_activated_at: user.premium_activated_at,
                 is_admin_override: user.is_admin_override,
-                isPremium: isPremium,
+                isPremium: isPremiumEffective,
                 hasCheckedInToday: !!todayCheckIn,
                 cleanDays: challenges.length,
-                completedChallengeDays: challenges.map((c: any) => c.dayCompleted),
+                completedChallengeDays: challenges.map(c => c.dayCompleted),
                 canDoNextTask: canDoNextTask,
                 educationCount: articleCount,
                 journalCount: challenges.length

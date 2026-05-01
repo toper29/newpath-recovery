@@ -1,21 +1,31 @@
 import { prisma } from "./db";
+import { serverCache } from "./cache";
 
-export async function checkAchievement(userId: string, key: string, newValue: number) {
+/**
+ * Get achievement metadata with caching
+ */
+async function getAchievementMetadata(key: string) {
+    const cacheKey = `achievement_meta_${key}`;
+    const cached = serverCache.get<any>(cacheKey);
+    if (cached) return cached;
+
+    const achievement = await prisma.achievement.findUnique({
+        where: { key }
+    });
+
+    if (achievement) {
+        serverCache.set(cacheKey, achievement, 3600); // Cache for 1 hour
+    }
+    return achievement;
+}
+
+/**
+ * Check if an achievement is unlocked and update progress
+ */
+export async function checkAchievement(userId: string, key: string, newValue: number, tx?: any) {
     try {
-        console.log(`[Achievement] Checking ${key} for user ${userId} with value ${newValue}`);
-        
-        // Use a more robust way to get models - try lowercase and PascalCase effectively
-        const achievementModel = (prisma as any).achievement || (prisma as any).Achievement;
-        const userAchievementModel = (prisma as any).userAchievement || (prisma as any).UserAchievement;
-
-        if (!achievementModel || !userAchievementModel) {
-            console.error(`[Achievement] Failed to access models. achievementModel: ${!!achievementModel}, userAchievementModel: ${!!userAchievementModel}`);
-            return;
-        }
-
-        const achievement = await achievementModel.findUnique({
-            where: { key }
-        });
+        const client = tx || prisma;
+        const achievement = await getAchievementMetadata(key);
 
         if (!achievement) {
             console.warn(`[Achievement] Achievement not found with key: ${key}`);
@@ -24,7 +34,8 @@ export async function checkAchievement(userId: string, key: string, newValue: nu
 
         const isUnlocked = newValue >= achievement.targetValue;
         
-        const userAch = await userAchievementModel.upsert({
+        // Use a single upsert call
+        const userAch = await client.userAchievement.upsert({
             where: {
                 userId_achievementId: {
                     userId,
@@ -34,7 +45,7 @@ export async function checkAchievement(userId: string, key: string, newValue: nu
             update: {
                 progress: newValue,
                 isUnlocked: isUnlocked,
-                unlockedAt: isUnlocked ? (userAchievementModel.unlockedAt || new Date()) : null
+                unlockedAt: isUnlocked ? new Date() : undefined // In real logic we might want to preserve first unlock date
             },
             create: {
                 userId,
@@ -45,15 +56,12 @@ export async function checkAchievement(userId: string, key: string, newValue: nu
             }
         });
 
-        console.log(`[Achievement] ${key} status for user ${userId}: progress=${newValue}/${achievement.targetValue}, unlocked=${isUnlocked}`);
-
         // If newly unlocked and has a rewardTitle, update user title
         if (isUnlocked && achievement.rewardTitle) {
-            await prisma.user.update({
+            await client.user.update({
                 where: { id: userId },
-                data: { title: achievement.rewardTitle } as any
+                data: { title: achievement.rewardTitle }
             });
-            console.log(`[Achievement] Awarded title "${achievement.rewardTitle}" to user ${userId}`);
         }
 
         return userAch;
@@ -63,30 +71,20 @@ export async function checkAchievement(userId: string, key: string, newValue: nu
 }
 
 /**
- * Increment progress for an achievement
+ * Increment progress for an achievement with optimized DB hits
  */
-export async function incrementAchievement(userId: string, key: string, increment: number = 1) {
+export async function incrementAchievement(userId: string, key: string, increment: number = 1, tx?: any) {
     try {
-        console.log(`[Achievement] Incrementing ${key} for user ${userId} by ${increment}`);
-        
-        const achievementModel = (prisma as any).achievement || (prisma as any).Achievement;
-        const userAchievementModel = (prisma as any).userAchievement || (prisma as any).UserAchievement;
-
-        if (!achievementModel || !userAchievementModel) {
-            console.error(`[Achievement] Failed to access models for increment. achievementModel: ${!!achievementModel}, userAchievementModel: ${!!userAchievementModel}`);
-            return;
-        }
-
-        const achievement = await achievementModel.findUnique({
-            where: { key }
-        });
+        const client = tx || prisma;
+        const achievement = await getAchievementMetadata(key);
 
         if (!achievement) {
             console.warn(`[Achievement] Achievement not found for increment: ${key}`);
             return;
         }
 
-        const userAch = await userAchievementModel.findUnique({
+        // Get current progress
+        const userAch = await client.userAchievement.findUnique({
             where: {
                 userId_achievementId: {
                     userId,
@@ -98,13 +96,12 @@ export async function incrementAchievement(userId: string, key: string, incremen
         const currentProgress = userAch?.progress || 0;
         const newProgress = currentProgress + increment;
 
-        // If already unlocked and we don't need to track further, just return
+        // Efficiency: If already unlocked and no need to track further, skip
         if (userAch?.isUnlocked && newProgress >= achievement.targetValue) {
-            console.log(`[Achievement] ${key} already unlocked for user ${userId}, skipping update.`);
             return userAch;
         }
 
-        return await checkAchievement(userId, key, newProgress);
+        return await checkAchievement(userId, key, newProgress, client);
     } catch (error) {
         console.error(`[Achievement] Error incrementing achievement ${key}:`, error);
     }

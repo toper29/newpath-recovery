@@ -94,6 +94,7 @@ model ChallengeProgress {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, status])
 }
 
 model FeatureUsage {
@@ -117,6 +118,7 @@ model GameSession {
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, playedAt])
 }
 
 model SecurityLog {
@@ -139,6 +141,7 @@ model DailyCheckIn {
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, checkedAt])
 }
 
 model Article {
@@ -150,6 +153,8 @@ model Article {
   createdBy   String
   createdAt   DateTime            @default(now())
   completions ArticleCompletion[]
+
+  @@index([category])
 }
 
 model ArticleCompletion {
